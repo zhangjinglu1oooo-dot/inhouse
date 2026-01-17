@@ -60,32 +60,38 @@
 
     <main class="content">
       <template v-if="!isAuthenticated">
-        <section class="panel login-panel">
-          <div class="login-header">
-            <div class="login-title">Enterprise Integration System</div>
-            <div class="login-subtitle">Please log in to access your account</div>
-          </div>
-          <div class="login-form">
-            <div class="field">
-              <label>Username</label>
-              <input v-model="loginForm.account" placeholder="Enter your username" />
+        <div class="login-shell">
+          <div class="login-decoration orb orb-left"></div>
+          <div class="login-decoration orb orb-right"></div>
+          <div class="login-decoration ring ring-top"></div>
+          <div class="login-decoration ring ring-bottom"></div>
+          <section class="panel login-panel">
+            <div class="login-header">
+              <div class="login-title">Enterprise Integration System</div>
+              <div class="login-subtitle">Please log in to access your account</div>
             </div>
-            <div class="field">
-              <label>Password</label>
-              <input v-model="loginForm.password" type="password" placeholder="Enter your password" />
+            <div class="login-form">
+              <div class="field">
+                <label>Username</label>
+                <input v-model="loginForm.account" placeholder="Enter your username" />
+              </div>
+              <div class="field">
+                <label>Password</label>
+                <input v-model="loginForm.password" type="password" placeholder="Enter your password" />
+              </div>
+              <button class="primary-btn login-btn" @click="login" :disabled="authLoading">Login</button>
             </div>
-            <button class="primary-btn login-btn" @click="login" :disabled="authLoading">Login</button>
-          </div>
-          <div v-if="authError" class="status-banner error">{{ authError }}</div>
-          <div class="login-hint">
-            <div class="hint-title">Use the following credentials for demonstration:</div>
-            <div class="hint-card">
-              <div><strong>Admin:</strong> admin / admin123</div>
-              <div><strong>User:</strong> user1 / user123</div>
-              <div><strong>Developer:</strong> developer / dev123</div>
+            <div v-if="authError" class="status-banner error">{{ authError }}</div>
+            <div class="login-hint">
+              <div class="hint-title">Use the following credentials for demonstration:</div>
+              <div class="hint-card">
+                <div><strong>Admin:</strong> admin / admin123</div>
+                <div><strong>User:</strong> user1 / user123</div>
+                <div><strong>Developer:</strong> developer / dev123</div>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </template>
 
       <template v-else>

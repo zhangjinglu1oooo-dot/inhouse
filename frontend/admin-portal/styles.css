@@ -117,6 +117,7 @@ body {
   padding: 32px 40px;
   display: grid;
   gap: 24px;
+  width: 100%;
 }
 
 .topbar {
@@ -201,6 +202,8 @@ body {
   text-align: center;
   padding: 32px;
   box-shadow: 0 18px 45px rgba(30, 64, 175, 0.12);
+  position: relative;
+  z-index: 2;
 }
 
 .login-header {
@@ -262,6 +265,60 @@ body {
   padding: 12px 16px;
   display: grid;
   gap: 6px;
+}
+
+.login-shell {
+  position: relative;
+  width: min(720px, 95vw);
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+}
+
+.login-decoration {
+  position: absolute;
+  border-radius: 999px;
+  opacity: 0.7;
+  z-index: 1;
+}
+
+.orb {
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle at 30% 30%, #bfdbfe, #e0e7ff);
+  filter: blur(1px);
+}
+
+.orb-left {
+  left: -40px;
+  top: 40px;
+}
+
+.orb-right {
+  right: -30px;
+  bottom: 60px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle at 30% 30%, #dbeafe, #e0f2fe);
+}
+
+.ring {
+  width: 220px;
+  height: 220px;
+  border: 1px dashed #c7d2fe;
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.ring-top {
+  right: 30px;
+  top: -40px;
+}
+
+.ring-bottom {
+  left: 20px;
+  bottom: -60px;
 }
 
 .panel-header {
