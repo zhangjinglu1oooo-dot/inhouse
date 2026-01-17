@@ -4,6 +4,18 @@ createApp({
   data() {
     return {
       apiBase: 'http://localhost:8080',
+      isAuthenticated: false,
+      loginForm: {
+        username: '',
+        password: '',
+        remember: true,
+      },
+      loginError: '',
+      loginLoading: false,
+      adminProfile: {
+        name: '系统管理员',
+        role: '安全与合规中心',
+      },
       navItems: [
         { id: 'overview', label: '总览' },
         { id: 'org', label: '组织架构' },
@@ -178,6 +190,74 @@ createApp({
     },
   },
   methods: {
+    initializeAuth() {
+      const savedSession = window.localStorage.getItem('inhouse-admin-session');
+      if (!savedSession) {
+        this.isAuthenticated = false;
+        return;
+      }
+      try {
+        const parsed = JSON.parse(savedSession);
+        if (parsed && parsed.name) {
+          this.adminProfile = {
+            name: parsed.name,
+            role: parsed.role || this.adminProfile.role,
+          };
+          this.isAuthenticated = true;
+          return;
+        }
+      } catch (error) {
+        window.localStorage.removeItem('inhouse-admin-session');
+      }
+      this.isAuthenticated = false;
+    },
+    async submitLogin() {
+      this.loginError = '';
+      if (!this.loginForm.username.trim() || !this.loginForm.password) {
+        this.loginError = '请输入管理员账号与密码。';
+        return;
+      }
+      this.loginLoading = true;
+      try {
+        const demoAccount = {
+          username: 'admin',
+          password: 'Admin@123',
+          name: '系统管理员',
+          role: '安全与合规中心',
+        };
+        if (
+          this.loginForm.username.trim() !== demoAccount.username ||
+          this.loginForm.password !== demoAccount.password
+        ) {
+          throw new Error('账号或密码错误，请重试。');
+        }
+        this.adminProfile = {
+          name: demoAccount.name,
+          role: demoAccount.role,
+        };
+        if (this.loginForm.remember) {
+          window.localStorage.setItem('inhouse-admin-session', JSON.stringify(this.adminProfile));
+        }
+        this.isAuthenticated = true;
+        this.loginForm.password = '';
+        this.loadUsers();
+      } catch (error) {
+        this.loginError = error.message || '登录失败，请稍后再试。';
+      } finally {
+        this.loginLoading = false;
+      }
+    },
+    logout() {
+      window.localStorage.removeItem('inhouse-admin-session');
+      this.isAuthenticated = false;
+      this.loginForm = {
+        username: '',
+        password: '',
+        remember: true,
+      };
+      this.searchText = '';
+      this.currentView = 'users';
+    },
     setView(viewId) {
       this.currentView = viewId;
       if (viewId === 'users') {
@@ -568,6 +648,9 @@ createApp({
     },
   },
   mounted() {
-    this.loadUsers();
+    this.initializeAuth();
+    if (this.isAuthenticated) {
+      this.loadUsers();
+    }
   },
 }).mount('#admin');
