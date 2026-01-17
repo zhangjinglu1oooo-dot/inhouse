@@ -155,3 +155,170 @@ RBAC/ABAC/审计]
 
 ## 6. 结论
 该系统通过 **统一权限中心 + AIHub + 应用注册管理**，实现企业级集成平台的可扩展、可管理、可运维能力，满足多应用集成、AI能力扩展以及安全合规要求。
+
+## 7. 应用注册 + 权限模型（接口草案与表结构草图）
+
+### 7.1 应用注册（AppRegistry）接口草案
+
+**应用管理**
+- `POST /api/apps`：注册应用
+- `GET /api/apps`：应用列表（支持按状态/标签过滤）
+- `GET /api/apps/{appId}`：应用详情
+- `PATCH /api/apps/{appId}`：更新应用信息（入口 URL/版本/描述/状态）
+- `POST /api/apps/{appId}/status`：启用/禁用应用
+- `POST /api/apps/{appId}/routes/refresh`：刷新网关路由
+
+**应用版本与环境**
+- `POST /api/apps/{appId}/versions`：新增版本（灰度/发布策略）
+- `GET /api/apps/{appId}/versions`：版本列表
+- `POST /api/apps/{appId}/envs`：配置环境（dev/test/prod）与入口地址
+
+**应用功能（Feature）**
+- `POST /api/apps/{appId}/features`：新增功能点
+- `GET /api/apps/{appId}/features`：功能点列表
+- `PATCH /api/apps/{appId}/features/{featureId}`：更新功能点
+- `POST /api/apps/{appId}/features/{featureId}/status`：启用/禁用功能点
+
+**示例：注册应用**
+```json
+POST /api/apps
+{
+  "code": "ticket",
+  "name": "工单系统",
+  "ownerOrgId": "org-001",
+  "entryUrl": "https://ticket.example.com",
+  "status": "ENABLED",
+  "tags": ["ITSM", "core"],
+  "description": "内部工单与审批"
+}
+```
+
+### 7.2 权限模型接口草案
+
+**角色与授权**
+- `POST /api/roles`：创建角色
+- `GET /api/roles`：角色列表
+- `POST /api/roles/{roleId}/permissions`：给角色绑定权限
+- `GET /api/roles/{roleId}/permissions`：角色权限详情
+
+**用户授权**
+- `POST /api/users/{userId}/roles`：用户绑定角色
+- `GET /api/users/{userId}/permissions`：用户聚合权限（可用于前端展示）
+
+**鉴权校验**
+- `POST /api/permissions/check`：后端服务鉴权校验（网关/应用调用）
+```json
+POST /api/permissions/check
+{
+  "userId": "u-1001",
+  "appCode": "ticket",
+  "featureCode": "ticket.create",
+  "resourceType": "ticket",
+  "resourceId": "T-20240401",
+  "action": "create",
+  "attributes": {
+    "deptId": "d-001",
+    "region": "cn"
+  }
+}
+```
+
+### 7.3 数据库表结构草图（MySQL）
+
+**应用注册**
+```
+app_registry (
+  id BIGINT PK,
+  code VARCHAR(64) UNIQUE,
+  name VARCHAR(128),
+  description VARCHAR(512),
+  owner_org_id VARCHAR(64),
+  entry_url VARCHAR(512),
+  status VARCHAR(32),
+  tags VARCHAR(256),
+  created_at DATETIME,
+  updated_at DATETIME
+)
+
+app_version (
+  id BIGINT PK,
+  app_id BIGINT FK,
+  version VARCHAR(64),
+  status VARCHAR(32),
+  rollout_strategy VARCHAR(64),
+  created_at DATETIME
+)
+
+app_env (
+  id BIGINT PK,
+  app_id BIGINT FK,
+  env VARCHAR(32),
+  entry_url VARCHAR(512),
+  status VARCHAR(32),
+  created_at DATETIME,
+  updated_at DATETIME
+)
+
+app_feature (
+  id BIGINT PK,
+  app_id BIGINT FK,
+  code VARCHAR(128),
+  name VARCHAR(128),
+  description VARCHAR(512),
+  status VARCHAR(32),
+  created_at DATETIME,
+  updated_at DATETIME
+)
+```
+
+**权限与授权**
+```
+iam_role (
+  id BIGINT PK,
+  code VARCHAR(64) UNIQUE,
+  name VARCHAR(128),
+  description VARCHAR(512),
+  created_at DATETIME,
+  updated_at DATETIME
+)
+
+iam_user (
+  id BIGINT PK,
+  username VARCHAR(64) UNIQUE,
+  display_name VARCHAR(128),
+  org_id VARCHAR(64),
+  status VARCHAR(32),
+  created_at DATETIME,
+  updated_at DATETIME
+)
+
+iam_user_role (
+  user_id BIGINT FK,
+  role_id BIGINT FK,
+  created_at DATETIME,
+  PRIMARY KEY (user_id, role_id)
+)
+
+permission (
+  id BIGINT PK,
+  app_id BIGINT FK,
+  feature_id BIGINT FK,
+  resource_type VARCHAR(64),
+  action VARCHAR(64),
+  condition_json JSON,
+  created_at DATETIME
+)
+
+role_permission (
+  role_id BIGINT FK,
+  permission_id BIGINT FK,
+  created_at DATETIME,
+  PRIMARY KEY (role_id, permission_id)
+)
+```
+
+### 7.4 关联关系与落地说明
+- **AppRegistry** 与 **Permission** 通过 `app_id` 关联，功能级权限通过 `feature_id` 关联。
+- **RBAC**：`iam_user -> iam_user_role -> iam_role -> role_permission -> permission`。
+- **ABAC**：`permission.condition_json` 存放策略条件（如部门/地域/数据级标签）。
+- **应用可见性**：查询用户权限聚合后，仅返回有 `app_id` 权限的应用列表。
