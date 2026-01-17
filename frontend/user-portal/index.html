@@ -3,110 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inhouse 员工门户</title>
+  <title>Inhouse 员工门户 - 登录</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
 <body>
-  <div id="app" class="layout">
-    <aside class="sidebar">
+  <div class="login-layout">
+    <div class="login-brand">
       <div class="brand">
         <div class="logo">IH</div>
         <div>
           <div class="brand-title">Inhouse</div>
-          <div class="brand-sub">员工门户</div>
+          <div class="brand-sub">员工门户登录</div>
         </div>
       </div>
-      <button class="primary-btn">+ 新建协作</button>
-      <nav class="nav">
-        <a class="nav-item active">概览</a>
-        <a class="nav-item">个人空间</a>
-        <a class="nav-item">协作应用</a>
-        <a class="nav-item">知识库</a>
-        <a class="nav-item">消息中心</a>
-        <a class="nav-item">服务支持</a>
-      </nav>
-      <div class="sidebar-footer">
-        <img class="avatar" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=200&auto=format&fit=crop" alt="avatar" />
-        <div>
-          <div class="user-name">王梓涵</div>
-          <div class="user-role">产品运营 · 市场部</div>
+      <h1>企业级协作系统</h1>
+      <p>统一入口访问工作台、知识库与智能体服务。</p>
+      <div class="login-highlights">
+        <div class="highlight-card">
+          <h3>多因素登录</h3>
+          <p>统一身份认证与安全审计追踪。</p>
+        </div>
+        <div class="highlight-card">
+          <h3>即时协作</h3>
+          <p>连接流程、会议与任务进度。</p>
         </div>
       </div>
-    </aside>
+    </div>
 
-    <main class="content">
-      <header class="topbar">
-        <div>
-          <div class="breadcrumb">工作台 / 发现</div>
-          <h1>企业协作与 AI 助手入口</h1>
-          <p>汇聚常用服务、智能体与业务应用，打造高效的员工体验。</p>
+    <div class="login-panel">
+      <div class="panel-card">
+        <h2>欢迎回来</h2>
+        <p class="muted">使用企业账号登录系统工作台</p>
+        <form class="login-form">
+          <label>
+            账号
+            <input type="text" placeholder="name@company.com" />
+          </label>
+          <label>
+            密码
+            <input type="password" placeholder="请输入密码" />
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" />
+            记住我（7 天）
+          </label>
+          <button class="primary-btn" type="button" onclick="location.href='system.html'">
+            登录进入系统
+          </button>
+        </form>
+        <div class="login-footer">
+          <a class="link" href="system.html">使用访客模式</a>
+          <span class="muted">|</span>
+          <a class="link" href="#">忘记密码</a>
         </div>
-        <div class="top-actions">
-          <input class="search" placeholder="搜索应用、流程或文档" />
-          <button class="icon-btn">🌙</button>
-          <button class="icon-btn">🔔</button>
+        <div class="login-alert">
+          <strong>提示：</strong>演示环境不校验账号，可直接进入系统页面。
         </div>
-      </header>
-
-      <section class="hero">
-        <div>
-          <div class="tag">本周重点</div>
-          <h2>多模态协作引擎已就绪</h2>
-          <p>支持文档、会议、流程与数据洞察的一站式工作体验。</p>
-          <div class="hero-actions">
-            <button class="primary-btn">进入工作流</button>
-            <button class="ghost-btn">了解路线图</button>
-          </div>
-        </div>
-        <div class="hero-visual">
-          <div class="floating-card">实时协作</div>
-          <div class="floating-card">AI 总结</div>
-          <div class="floating-card">智能检索</div>
-        </div>
-      </section>
-
-      <section class="grid">
-        <article class="glass-card" v-for="card in highlights" :key="card.title">
-          <div class="card-icon">{{ card.icon }}</div>
-          <h3>{{ card.title }}</h3>
-          <p>{{ card.description }}</p>
-          <button class="ghost-btn">{{ card.action }}</button>
-        </article>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <h3>我的智能助手</h3>
-          <div class="chips">
-            <span class="chip" v-for="chip in chips" :key="chip">{{ chip }}</span>
-          </div>
-        </div>
-        <div class="assistants">
-          <div class="assistant" v-for="assistant in assistants" :key="assistant.name">
-            <div class="assistant-icon">{{ assistant.icon }}</div>
-            <div>
-              <h4>{{ assistant.name }}</h4>
-              <p>{{ assistant.summary }}</p>
-            </div>
-            <button class="ghost-btn">打开</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <h3>API 接入配置</h3>
-          <p>前端与后端分离调用入口（预留配置）。</p>
-        </div>
-        <div class="api-form">
-          <input v-model="apiBase" placeholder="http://localhost:8080" />
-          <button class="primary-btn">保存</button>
-        </div>
-      </section>
-    </main>
+      </div>
+    </div>
   </div>
-
-  <script src="app.js"></script>
 </body>
 </html>
