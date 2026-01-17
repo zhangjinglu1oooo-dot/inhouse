@@ -400,6 +400,10 @@ body {
   color: #1e293b;
 }
 
+.login-form label.checkbox {
+  display: flex;
+}
+
 .login-form input[type="text"],
 .login-form input[type="password"] {
   border: 1px solid #e2e8f0;
