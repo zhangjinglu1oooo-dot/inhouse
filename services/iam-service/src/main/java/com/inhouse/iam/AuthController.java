@@ -16,26 +16,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
-    // 用户存储
-    private final IamStore store;
+    // 用户仓库
+    private final IamRepository repository;
     // Token 服务
     private final TokenService tokenService;
 
-    public AuthController(IamStore store, TokenService tokenService) {
-        this.store = store;
+    public AuthController(IamRepository repository, TokenService tokenService) {
+        this.repository = repository;
         this.tokenService = tokenService;
     }
 
     @PostMapping("/login")
     public TokenResponse login(@RequestBody LoginRequest request) {
         // 简单用户名/密码校验
-        for (User user : store.getUsers().values()) {
-            if (user.getUsername().equals(request.getUsername())
-                    && user.getPassword().equals(request.getPassword())) {
-                return tokenService.issueToken(user.getId());
-            }
-        }
-        throw new IllegalArgumentException("Invalid credentials");
+        return repository
+                .findUserByUsernameAndPassword(request.getUsername(), request.getPassword())
+                .map(user -> tokenService.issueToken(user.getId()))
+                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
     }
 
     @PostMapping("/validate")

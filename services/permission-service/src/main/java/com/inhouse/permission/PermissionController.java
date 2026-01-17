@@ -22,11 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/permissions")
 @CrossOrigin(origins = "*")
 public class PermissionController {
-    // 内存策略存储
-    private final PolicyStore store;
+    // 策略仓库
+    private final PolicyRepository repository;
 
-    public PermissionController(PolicyStore store) {
-        this.store = store;
+    public PermissionController(PolicyRepository repository) {
+        this.repository = repository;
     }
 
     @PostMapping("/policies")
@@ -36,19 +36,19 @@ public class PermissionController {
         String id = UUID.randomUUID().toString();
         policy.setId(id);
         policy.setCreatedAt(new Date());
-        store.getPolicies().put(id, policy);
+        repository.savePolicy(policy);
         return policy;
     }
 
     @GetMapping("/policies")
     public List<Policy> listPolicies() {
-        return new ArrayList<Policy>(store.getPolicies().values());
+        return new ArrayList<Policy>(repository.listPolicies());
     }
 
     @PostMapping("/check")
     public PermissionCheckResponse check(@RequestBody PermissionCheckRequest request) {
         // 遍历策略进行匹配
-        for (Policy policy : store.getPolicies().values()) {
+        for (Policy policy : repository.listPolicies()) {
             if (!policy.getApp().equals(request.getApp())) {
                 continue;
             }

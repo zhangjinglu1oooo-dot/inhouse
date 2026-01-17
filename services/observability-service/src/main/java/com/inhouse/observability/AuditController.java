@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/observability/audits")
 @CrossOrigin(origins = "*")
 public class AuditController {
-    // 内存审计存储
-    private final AuditStore store;
+    // 审计仓库
+    private final AuditRepository repository;
 
-    public AuditController(AuditStore store) {
-        this.store = store;
+    public AuditController(AuditRepository repository) {
+        this.repository = repository;
     }
 
     @PostMapping
@@ -34,12 +34,12 @@ public class AuditController {
         // 写入审计日志
         entry.setId(UUID.randomUUID().toString());
         entry.setCreatedAt(new Date());
-        store.getAudits().add(entry);
+        repository.saveAudit(entry);
         return entry;
     }
 
     @GetMapping
     public List<AuditEntry> list() {
-        return new ArrayList<AuditEntry>(store.getAudits());
+        return new ArrayList<AuditEntry>(repository.listAudits());
     }
 }

@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/iam")
 @CrossOrigin(origins = "*")
 public class IamController {
-    // 内存用户/角色存储
-    private final IamStore store;
+    // 用户/角色仓库
+    private final IamRepository repository;
 
-    public IamController(IamStore store) {
-        this.store = store;
+    public IamController(IamRepository repository) {
+        this.repository = repository;
     }
 
     @PostMapping("/users")
@@ -35,13 +35,13 @@ public class IamController {
         String id = UUID.randomUUID().toString();
         user.setId(id);
         user.setCreatedAt(new Date());
-        store.getUsers().put(id, user);
+        repository.saveUser(user);
         return user;
     }
 
     @GetMapping("/users")
     public List<User> listUsers() {
-        return new ArrayList<User>(store.getUsers().values());
+        return new ArrayList<User>(repository.listUsers());
     }
 
     @PostMapping("/roles")
@@ -51,12 +51,12 @@ public class IamController {
         String id = UUID.randomUUID().toString();
         role.setId(id);
         role.setCreatedAt(new Date());
-        store.getRoles().put(id, role);
+        repository.saveRole(role);
         return role;
     }
 
     @GetMapping("/roles")
     public List<Role> listRoles() {
-        return new ArrayList<Role>(store.getRoles().values());
+        return new ArrayList<Role>(repository.listRoles());
     }
 }

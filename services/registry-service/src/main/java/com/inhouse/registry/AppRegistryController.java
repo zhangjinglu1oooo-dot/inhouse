@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/registry/apps")
 @CrossOrigin(origins = "*")
 public class AppRegistryController {
-    // 内存应用仓库
-    private final AppStore store;
+    // 应用仓库
+    private final AppRepository repository;
 
-    public AppRegistryController(AppStore store) {
-        this.store = store;
+    public AppRegistryController(AppRepository repository) {
+        this.repository = repository;
     }
 
     @PostMapping
@@ -35,12 +35,12 @@ public class AppRegistryController {
         String id = UUID.randomUUID().toString();
         app.setId(id);
         app.setCreatedAt(new Date());
-        store.getApps().put(id, app);
+        repository.saveApp(app);
         return app;
     }
 
     @GetMapping
     public List<AppDefinition> list() {
-        return new ArrayList<AppDefinition>(store.getApps().values());
+        return new ArrayList<AppDefinition>(repository.listApps());
     }
 }
