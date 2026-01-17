@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  */
 public class TokenService {
     private static final String TOKEN_PREFIX = "iam:token:";
+    private static final String USER_TOKEN_PREFIX = "iam:user-token:";
     // 签名密钥
     private static final byte[] SECRET = "inhouse-secret".getBytes(StandardCharsets.UTF_8);
     // Token 有效期
@@ -27,12 +28,18 @@ public class TokenService {
     }
 
     public TokenResponse issueToken(String userId) {
+        String existingToken = stringRedisTemplate.opsForValue().get(userTokenKey(userId));
+        if (existingToken != null) {
+            stringRedisTemplate.delete(tokenKey(existingToken));
+        }
         // 生成带过期时间的 token
         long expiresAt = System.currentTimeMillis() + TOKEN_TTL_MILLIS;
         String payload = userId + ":" + expiresAt;
         String signature = sign(payload);
         String token = Base64.getUrlEncoder().encodeToString((payload + "." + signature).getBytes(StandardCharsets.UTF_8));
-        stringRedisTemplate.opsForValue().set(tokenKey(token), userId, Duration.ofMillis(TOKEN_TTL_MILLIS));
+        Duration ttl = Duration.ofMillis(TOKEN_TTL_MILLIS);
+        stringRedisTemplate.opsForValue().set(tokenKey(token), userId, ttl);
+        stringRedisTemplate.opsForValue().set(userTokenKey(userId), token, ttl);
         TokenResponse response = new TokenResponse();
         response.setAccessToken(token);
         response.setExpiresAt(new Date(expiresAt));
@@ -64,6 +71,10 @@ public class TokenService {
         if (storedUserId == null || !storedUserId.equals(payloadParts[0])) {
             throw new IllegalArgumentException("Token not found");
         }
+        String currentToken = stringRedisTemplate.opsForValue().get(userTokenKey(storedUserId));
+        if (currentToken == null || !currentToken.equals(token)) {
+            throw new IllegalArgumentException("Token not current");
+        }
         return payloadParts[0];
     }
 
@@ -81,5 +92,9 @@ public class TokenService {
 
     private String tokenKey(String token) {
         return TOKEN_PREFIX + token;
+    }
+
+    private String userTokenKey(String userId) {
+        return USER_TOKEN_PREFIX + userId;
     }
 }

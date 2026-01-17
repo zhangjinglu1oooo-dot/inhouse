@@ -8,3 +8,10 @@ spring:
     username: ${INHOUSE_DB_USERNAME:root}
     password: ${INHOUSE_DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
