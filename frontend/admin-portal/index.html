@@ -8,71 +8,109 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
 <body>
-  <div id="admin" class="layout">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">IH</div>
-        <div>
-          <div class="brand-title">Inhouse</div>
-          <div class="brand-sub">管理后台</div>
-        </div>
-      </div>
-      <nav class="nav">
-        <template v-for="item in navItems" :key="item.id">
-          <div v-if="item.children" class="nav-group">
-            <div
-              class="nav-item nav-parent"
-              :class="{ active: isGroupActive(item) }"
-              @click="toggleNav(item.id)"
-            >
-              <span>{{ item.label }}</span>
-              <span class="nav-arrow" :class="{ open: isNavOpen(item.id) }">▾</span>
-            </div>
-            <div class="nav-children" v-show="isNavOpen(item.id)">
-              <a
-                v-for="child in item.children"
-                :key="child.id"
-                class="nav-item nav-child"
-                :class="{ active: currentView === child.id }"
-                @click="setView(child.id)"
-              >
-                {{ child.label }}
-              </a>
-            </div>
+  <div id="admin" :class="{ layout: isAuthenticated, 'login-page': !isAuthenticated }">
+    <div v-if="!isAuthenticated" class="login-screen">
+      <div class="login-card">
+        <div class="login-brand">
+          <div class="logo">IH</div>
+          <div>
+            <div class="brand-title">Inhouse 管理后台</div>
+            <div class="brand-sub">请使用管理员账号登录</div>
           </div>
-          <a
-            v-else
-            class="nav-item"
-            :class="{ active: currentView === item.id }"
-            @click="setView(item.id)"
-          >
-            {{ item.label }}
-          </a>
-        </template>
-      </nav>
-      <div class="sidebar-footer">
-        <div>
-          <div class="user-name">系统管理员</div>
-          <div class="user-role">安全与合规中心</div>
+        </div>
+        <div class="login-form">
+          <label class="field">
+            <span>管理员账号</span>
+            <input v-model="loginForm.username" placeholder="admin" autocomplete="username" />
+          </label>
+          <label class="field">
+            <span>登录密码</span>
+            <input
+              v-model="loginForm.password"
+              type="password"
+              placeholder="请输入密码"
+              autocomplete="current-password"
+            />
+          </label>
+          <label class="remember-row">
+            <input type="checkbox" v-model="loginForm.remember" />
+            记住登录状态
+          </label>
+          <div v-if="loginError" class="status-banner error">{{ loginError }}</div>
+          <button class="primary-btn login-btn" @click="submitLogin" :disabled="loginLoading">
+            {{ loginLoading ? '登录中...' : '登录管理后台' }}
+          </button>
+          <div class="login-tip">演示账号：admin / Admin@123</div>
         </div>
       </div>
-    </aside>
+    </div>
 
-    <main class="content">
-      <header class="topbar">
-        <div>
-          <div class="breadcrumb">管理后台 / {{ viewMeta.breadcrumb }}</div>
-          <h1>{{ viewMeta.title }}</h1>
-          <p>{{ viewMeta.subtitle }}</p>
+    <template v-else>
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="logo">IH</div>
+          <div>
+            <div class="brand-title">Inhouse</div>
+            <div class="brand-sub">管理后台</div>
+          </div>
         </div>
-        <div class="top-actions">
-          <input class="search" v-model="searchText" placeholder="搜索员工、部门或应用" />
-          <button class="icon-btn">⚙️</button>
-          <button class="icon-btn">📩</button>
+        <nav class="nav">
+          <template v-for="item in navItems" :key="item.id">
+            <div v-if="item.children" class="nav-group">
+              <div
+                class="nav-item nav-parent"
+                :class="{ active: isGroupActive(item) }"
+                @click="toggleNav(item.id)"
+              >
+                <span>{{ item.label }}</span>
+                <span class="nav-arrow" :class="{ open: isNavOpen(item.id) }">▾</span>
+              </div>
+              <div class="nav-children" v-show="isNavOpen(item.id)">
+                <a
+                  v-for="child in item.children"
+                  :key="child.id"
+                  class="nav-item nav-child"
+                  :class="{ active: currentView === child.id }"
+                  @click="setView(child.id)"
+                >
+                  {{ child.label }}
+                </a>
+              </div>
+            </div>
+            <a
+              v-else
+              class="nav-item"
+              :class="{ active: currentView === item.id }"
+              @click="setView(item.id)"
+            >
+              {{ item.label }}
+            </a>
+          </template>
+        </nav>
+        <div class="sidebar-footer">
+          <div>
+            <div class="user-name">{{ adminProfile.name }}</div>
+            <div class="user-role">{{ adminProfile.role }}</div>
+          </div>
+          <button class="ghost-btn logout-btn" @click="logout">退出登录</button>
         </div>
-      </header>
+      </aside>
 
-      <template v-if="currentView === 'overview'">
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <div class="breadcrumb">管理后台 / {{ viewMeta.breadcrumb }}</div>
+            <h1>{{ viewMeta.title }}</h1>
+            <p>{{ viewMeta.subtitle }}</p>
+          </div>
+          <div class="top-actions">
+            <input class="search" v-model="searchText" placeholder="搜索员工、部门或应用" />
+            <button class="icon-btn">⚙️</button>
+            <button class="icon-btn">📩</button>
+          </div>
+        </header>
+
+        <template v-if="currentView === 'overview'">
         <section class="stats">
           <div class="stat-card" v-for="stat in stats" :key="stat.label">
             <div class="stat-label">{{ stat.label }}</div>
@@ -496,7 +534,8 @@
           该模块正在建设中，敬请期待。
         </section>
       </template>
-    </main>
+      </main>
+    </template>
   </div>
 
   <script src="app.js"></script>
