@@ -433,6 +433,10 @@ body {
   font-weight: 400;
 }
 
+.checkbox input {
+  margin: 0;
+}
+
 .login-footer {
   display: flex;
   gap: 8px;

@@ -37,7 +37,9 @@ public class IamController {
         // 写入用户信息
         String id = UUID.randomUUID().toString();
         user.setId(id);
-        user.setCreatedAt(new Date());
+        Date now = new Date();
+        user.setCreatedAt(now);
+        user.setUpdatedAt(now);
         ensurePasswordHashed(user);
         repository.saveUser(user);
         return user;

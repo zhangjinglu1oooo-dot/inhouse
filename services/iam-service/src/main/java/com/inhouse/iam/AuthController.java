@@ -63,6 +63,7 @@ public class AuthController {
         user.setDisplayName(request.getAccount().trim());
         user.setStatus("active");
         user.setCreatedAt(new java.util.Date());
+        user.setUpdatedAt(new java.util.Date());
         PasswordHash passwordHash = passwordService.hashPassword(request.getPassword());
         user.setPassword(passwordHash.getHash());
         user.setPasswordSalt(passwordHash.getSalt());

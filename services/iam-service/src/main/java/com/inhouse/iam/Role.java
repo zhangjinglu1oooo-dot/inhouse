@@ -12,6 +12,8 @@ public class Role {
     private String id;
     // 角色名称
     private String name;
+    // 角色描述
+    private String description;
     // 权限列表
     private List<RolePermission> permissions = new ArrayList<RolePermission>();
     // 创建时间
@@ -31,6 +33,14 @@ public class Role {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public List<RolePermission> getPermissions() {
