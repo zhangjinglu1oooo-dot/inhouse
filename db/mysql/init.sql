@@ -122,3 +122,84 @@ CREATE TABLE IF NOT EXISTS audits (
     detail JSON COMMENT '详细信息',
     created_at DATETIME NOT NULL COMMENT '创建时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审计日志表';
+
+-- 初始化超级管理员账号与最高权限（默认密码：Admin@123，首次登录后请尽快修改）
+INSERT IGNORE INTO iam_users (
+    id,
+    employee_id,
+    username,
+    password_hash,
+    password_salt,
+    display_name,
+    email,
+    phone,
+    status,
+    avatar_url,
+    last_login_at,
+    created_at,
+    updated_at
+) VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    'ADMIN-0001',
+    'admin',
+    'E03gWb1ptAFhettnVQE7IOKl3ya03A+E0k4nswmdhVE=',
+    'ASNFZ4mrze8QMlR2mLrc/g==',
+    '系统管理员',
+    'admin@inhouse.local',
+    NULL,
+    'active',
+    NULL,
+    NULL,
+    NOW(),
+    NOW()
+);
+
+INSERT IGNORE INTO iam_roles (
+    id,
+    name,
+    description,
+    created_at
+) VALUES (
+    '00000000-0000-0000-0000-000000000101',
+    'admin',
+    '系统最高管理员',
+    NOW()
+);
+
+INSERT IGNORE INTO iam_permissions (
+    id,
+    app,
+    feature,
+    resource,
+    description,
+    created_at
+) VALUES (
+    '00000000-0000-0000-0000-000000000201',
+    '*',
+    '*',
+    '*',
+    '全量权限访问',
+    NOW()
+);
+
+INSERT IGNORE INTO iam_user_roles (
+    user_id,
+    role_id,
+    created_at
+) VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000101',
+    NOW()
+);
+
+INSERT IGNORE INTO iam_role_permissions (
+    role_id,
+    permission_id,
+    effect,
+    created_at
+) VALUES (
+    '00000000-0000-0000-0000-000000000101',
+    '00000000-0000-0000-0000-000000000201',
+    'allow',
+    NOW()
+);

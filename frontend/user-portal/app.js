@@ -3,7 +3,12 @@ const { createApp } = Vue;
 createApp({
   data() {
     return {
-      apiBase: 'http://localhost:8080',
+      apiBase: 'http://localhost:8081',
+      adminRoleId: '00000000-0000-0000-0000-000000000101',
+      adminPortalUrl: '../admin-portal/index.html',
+      currentUser: null,
+      userLoading: false,
+      userError: '',
       highlights: [
         {
           title: '项目协作中心',
@@ -49,5 +54,70 @@ createApp({
         },
       ],
     };
+  },
+  computed: {
+    userDisplayName() {
+      if (!this.currentUser) {
+        return '未登录';
+      }
+      return this.currentUser.displayName || this.currentUser.username || '未命名用户';
+    },
+    userMeta() {
+      if (!this.currentUser) {
+        return '请先登录';
+      }
+      if (this.hasAdminAccess) {
+        return '系统管理员';
+      }
+      const segments = [this.currentUser.title, this.currentUser.departmentId].filter(Boolean);
+      if (segments.length > 0) {
+        return segments.join(' · ');
+      }
+      return '未分配岗位';
+    },
+    hasAdminAccess() {
+      if (!this.currentUser || !Array.isArray(this.currentUser.roles)) {
+        return false;
+      }
+      return this.currentUser.roles.includes(this.adminRoleId);
+    },
+  },
+  methods: {
+    async loadCurrentUser() {
+      const token = localStorage.getItem('inhouse_token');
+      if (!token) {
+        this.userError = '未找到登录凭证，请先登录。';
+        return;
+      }
+      this.userLoading = true;
+      this.userError = '';
+      try {
+        const validateResponse = await fetch(`${this.apiBase}/auth/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken: token }),
+        });
+        if (!validateResponse.ok) {
+          throw new Error('登录已失效，请重新登录。');
+        }
+        const userId = (await validateResponse.text()).trim();
+        const userResponse = await fetch(`${this.apiBase}/iam/users/${userId}`);
+        if (!userResponse.ok) {
+          throw new Error('无法加载用户资料，请稍后重试。');
+        }
+        this.currentUser = await userResponse.json();
+      } catch (error) {
+        this.userError = error.message || '加载用户信息失败。';
+      } finally {
+        this.userLoading = false;
+      }
+    },
+    logout() {
+      localStorage.removeItem('inhouse_token');
+      window.location.href = 'index.html';
+    },
+  },
+  mounted() {
+    this.loadCurrentUser();
   },
 }).mount('#app');
