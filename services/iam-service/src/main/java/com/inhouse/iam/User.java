@@ -16,8 +16,10 @@ public class User {
     private String employeeId;
     // 登录名
     private String username;
-    // 密码（演示用明文存储）
+    // 密码哈希
     private String password;
+    // 密码盐值
+    private String passwordSalt;
     // 展示名称
     private String displayName;
     // 邮箱
@@ -77,6 +79,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPasswordSalt() {
+        return passwordSalt;
+    }
+
+    public void setPasswordSalt(String passwordSalt) {
+        this.passwordSalt = passwordSalt;
     }
 
     public String getDisplayName() {

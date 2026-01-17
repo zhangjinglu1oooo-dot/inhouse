@@ -408,6 +408,24 @@ body {
   font-size: 14px;
 }
 
+.form-message {
+  min-height: 18px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.form-message.info {
+  color: #2563eb;
+}
+
+.form-message.success {
+  color: #16a34a;
+}
+
+.form-message.error {
+  color: #dc2626;
+}
+
 .checkbox {
   display: flex;
   align-items: center;

@@ -34,33 +34,35 @@
       <div class="panel-card">
         <h2>欢迎回来</h2>
         <p class="muted">使用企业账号登录系统工作台</p>
-        <form class="login-form">
+        <form class="login-form" id="login-form">
           <label>
-            账号
-            <input type="text" placeholder="name@company.com" />
+            账号（姓名）
+            <input type="text" name="account" placeholder="请输入姓名" required />
           </label>
           <label>
             密码
-            <input type="password" placeholder="请输入密码" />
+            <input type="password" name="password" placeholder="请输入密码" required />
           </label>
           <label class="checkbox">
-            <input type="checkbox" />
+            <input type="checkbox" name="remember" />
             记住我（7 天）
           </label>
-          <button class="primary-btn" type="button" onclick="location.href='system.html'">
+          <button class="primary-btn" type="submit">
             登录进入系统
           </button>
+          <div class="form-message" id="login-message"></div>
         </form>
         <div class="login-footer">
           <a class="link" href="system.html">使用访客模式</a>
           <span class="muted">|</span>
-          <a class="link" href="#">忘记密码</a>
+          <a class="link" href="register.html">创建新账号</a>
         </div>
         <div class="login-alert">
-          <strong>提示：</strong>演示环境不校验账号，可直接进入系统页面。
+          <strong>提示：</strong>账号为姓名，邮箱为必填信息。
         </div>
       </div>
     </div>
   </div>
+  <script src="login.js"></script>
 </body>
 </html>

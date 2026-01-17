@@ -23,9 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class IamController {
     // 用户/角色仓库
     private final IamRepository repository;
+    // 密码服务
+    private final PasswordService passwordService;
 
-    public IamController(IamRepository repository) {
+    public IamController(IamRepository repository, PasswordService passwordService) {
         this.repository = repository;
+        this.passwordService = passwordService;
     }
 
     @PostMapping("/users")
@@ -35,6 +38,7 @@ public class IamController {
         String id = UUID.randomUUID().toString();
         user.setId(id);
         user.setCreatedAt(new Date());
+        ensurePasswordHashed(user);
         repository.saveUser(user);
         return user;
     }
@@ -58,5 +62,16 @@ public class IamController {
     @GetMapping("/roles")
     public List<Role> listRoles() {
         return new ArrayList<Role>(repository.listRoles());
+    }
+
+    private void ensurePasswordHashed(User user) {
+        if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+        if (user.getPasswordSalt() == null || user.getPasswordSalt().trim().isEmpty()) {
+            PasswordHash passwordHash = passwordService.hashPassword(user.getPassword());
+            user.setPassword(passwordHash.getHash());
+            user.setPasswordSalt(passwordHash.getSalt());
+        }
     }
 }
