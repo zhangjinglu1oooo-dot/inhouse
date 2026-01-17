@@ -18,15 +18,37 @@
         </div>
       </div>
       <nav class="nav">
-        <a
-          v-for="item in navItems"
-          :key="item.id"
-          class="nav-item"
-          :class="{ active: currentView === item.id }"
-          @click="setView(item.id)"
-        >
-          {{ item.label }}
-        </a>
+        <template v-for="item in navItems" :key="item.id">
+          <div v-if="item.children" class="nav-group">
+            <div
+              class="nav-item nav-parent"
+              :class="{ active: isGroupActive(item) }"
+              @click="toggleNav(item.id)"
+            >
+              <span>{{ item.label }}</span>
+              <span class="nav-arrow" :class="{ open: isNavOpen(item.id) }">▾</span>
+            </div>
+            <div class="nav-children" v-show="isNavOpen(item.id)">
+              <a
+                v-for="child in item.children"
+                :key="child.id"
+                class="nav-item nav-child"
+                :class="{ active: currentView === child.id }"
+                @click="setView(child.id)"
+              >
+                {{ child.label }}
+              </a>
+            </div>
+          </div>
+          <a
+            v-else
+            class="nav-item"
+            :class="{ active: currentView === item.id }"
+            @click="setView(item.id)"
+          >
+            {{ item.label }}
+          </a>
+        </template>
       </nav>
       <div class="sidebar-footer">
         <div>
@@ -91,12 +113,16 @@
         <section class="panel">
           <div class="panel-header">
             <div>
-              <h3>新增员工账号</h3>
-              <p>创建账号后将同步写入 IAM 数据库。</p>
+              <h3>{{ editingUserId ? '编辑员工账号' : '新增员工账号' }}</h3>
+              <p>创建或维护账号后将同步写入 IAM 数据库。</p>
             </div>
             <div class="panel-actions">
-              <button class="ghost-btn" @click="resetUserForm">重置</button>
-              <button class="primary-btn" @click="createUser" :disabled="userLoading">保存账号</button>
+              <button class="ghost-btn" @click="resetUserForm">
+                {{ editingUserId ? '取消编辑' : '重置' }}
+              </button>
+              <button class="primary-btn" @click="submitUser" :disabled="userLoading">
+                {{ editingUserId ? '更新账号' : '保存账号' }}
+              </button>
             </div>
           </div>
           <div class="form-grid">
@@ -161,7 +187,7 @@
           <div class="panel-header">
             <div>
               <h3>用户列表</h3>
-              <p>共 {{ filteredUsers.length }} 位员工账号</p>
+              <p>共 {{ userPagination.total }} 位员工账号</p>
             </div>
             <div class="panel-actions">
               <button class="ghost-btn" @click="loadUsers" :disabled="userLoading">刷新列表</button>
@@ -184,6 +210,7 @@
                   <th>联系方式</th>
                   <th>入职日期</th>
                   <th>创建时间</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -205,9 +232,261 @@
                   </td>
                   <td>{{ formatDate(user.hireDate) }}</td>
                   <td>{{ formatDate(user.createdAt) }}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="link-btn" @click="startEditUser(user)">编辑</button>
+                      <button class="link-btn danger" @click="deleteUser(user)">删除</button>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div v-if="filteredUsers.length" class="pagination">
+            <div class="pagination-info">
+              第 {{ userPagination.page }} 页 / 共 {{ userTotalPages }} 页
+            </div>
+            <div class="pagination-controls">
+              <button
+                class="ghost-btn"
+                @click="changeUserPage(userPagination.page - 1)"
+                :disabled="userPagination.page === 1"
+              >
+                上一页
+              </button>
+              <button
+                class="ghost-btn"
+                @click="changeUserPage(userPagination.page + 1)"
+                :disabled="userPagination.page === userTotalPages"
+              >
+                下一页
+              </button>
+              <select
+                v-model.number="userPagination.size"
+                @change="changeUserPage(1)"
+                class="page-size"
+              >
+                <option :value="5">5 条/页</option>
+                <option :value="8">8 条/页</option>
+                <option :value="12">12 条/页</option>
+              </select>
+            </div>
+          </div>
+        </section>
+      </template>
+
+      <template v-else-if="currentView === 'roles'">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>{{ editingRoleId ? '编辑角色' : '新增角色' }}</h3>
+              <p>维护岗位与授权角色，为权限策略提供基础。</p>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost-btn" @click="resetRoleForm">
+                {{ editingRoleId ? '取消编辑' : '重置' }}
+              </button>
+              <button class="primary-btn" @click="submitRole" :disabled="roleLoading">
+                {{ editingRoleId ? '更新角色' : '保存角色' }}
+              </button>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>角色名称</label>
+              <input v-model="roleForm.name" placeholder="如：安全管理员" />
+            </div>
+            <div class="field">
+              <label>角色描述</label>
+              <input v-model="roleForm.description" placeholder="描述角色职责与范围" />
+            </div>
+          </div>
+          <div v-if="roleError" class="status-banner error">{{ roleError }}</div>
+          <div v-if="roleSuccess" class="status-banner success">{{ roleSuccess }}</div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>角色列表</h3>
+              <p>共 {{ rolePagination.total }} 个角色</p>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost-btn" @click="loadRoles" :disabled="roleLoading">刷新列表</button>
+            </div>
+          </div>
+          <div v-if="roleLoading" class="empty-state">正在加载角色数据...</div>
+          <div v-else-if="roles.length === 0" class="empty-state">
+            暂无角色数据，请先新增角色。
+          </div>
+          <div v-else class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>角色名称</th>
+                  <th>描述</th>
+                  <th>创建时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="role in roles" :key="role.id">
+                  <td>{{ role.name }}</td>
+                  <td>{{ role.description || '-' }}</td>
+                  <td>{{ formatDate(role.createdAt) }}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="link-btn" @click="startEditRole(role)">编辑</button>
+                      <button class="link-btn danger" @click="deleteRole(role)">删除</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="roles.length" class="pagination">
+            <div class="pagination-info">
+              第 {{ rolePagination.page }} 页 / 共 {{ roleTotalPages }} 页
+            </div>
+            <div class="pagination-controls">
+              <button
+                class="ghost-btn"
+                @click="changeRolePage(rolePagination.page - 1)"
+                :disabled="rolePagination.page === 1"
+              >
+                上一页
+              </button>
+              <button
+                class="ghost-btn"
+                @click="changeRolePage(rolePagination.page + 1)"
+                :disabled="rolePagination.page === roleTotalPages"
+              >
+                下一页
+              </button>
+              <select
+                v-model.number="rolePagination.size"
+                @change="changeRolePage(1)"
+                class="page-size"
+              >
+                <option :value="5">5 条/页</option>
+                <option :value="8">8 条/页</option>
+                <option :value="12">12 条/页</option>
+              </select>
+            </div>
+          </div>
+        </section>
+      </template>
+
+      <template v-else-if="currentView === 'permissions'">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>{{ editingPermissionId ? '编辑权限' : '新增权限' }}</h3>
+              <p>维护可授权应用与功能点清单。</p>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost-btn" @click="resetPermissionForm">
+                {{ editingPermissionId ? '取消编辑' : '重置' }}
+              </button>
+              <button class="primary-btn" @click="submitPermission" :disabled="permissionLoading">
+                {{ editingPermissionId ? '更新权限' : '保存权限' }}
+              </button>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>应用名称</label>
+              <input v-model="permissionForm.app" placeholder="如：CRM" />
+            </div>
+            <div class="field">
+              <label>功能点</label>
+              <input v-model="permissionForm.feature" placeholder="如：客户数据查看" />
+            </div>
+            <div class="field">
+              <label>资源标识</label>
+              <input v-model="permissionForm.resource" placeholder="可选，如：tenant-01" />
+            </div>
+            <div class="field">
+              <label>权限描述</label>
+              <input v-model="permissionForm.description" placeholder="描述权限用途" />
+            </div>
+          </div>
+          <div v-if="permissionError" class="status-banner error">{{ permissionError }}</div>
+          <div v-if="permissionSuccess" class="status-banner success">{{ permissionSuccess }}</div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>权限列表</h3>
+              <p>共 {{ permissionPagination.total }} 条权限</p>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost-btn" @click="loadPermissions" :disabled="permissionLoading">刷新列表</button>
+            </div>
+          </div>
+          <div v-if="permissionLoading" class="empty-state">正在加载权限数据...</div>
+          <div v-else-if="permissions.length === 0" class="empty-state">
+            暂无权限数据，请先新增权限。
+          </div>
+          <div v-else class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>应用</th>
+                  <th>功能点</th>
+                  <th>资源</th>
+                  <th>描述</th>
+                  <th>创建时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="permission in permissions" :key="permission.id">
+                  <td>{{ permission.app }}</td>
+                  <td>{{ permission.feature }}</td>
+                  <td>{{ permission.resource || '-' }}</td>
+                  <td>{{ permission.description || '-' }}</td>
+                  <td>{{ formatDate(permission.createdAt) }}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="link-btn" @click="startEditPermission(permission)">编辑</button>
+                      <button class="link-btn danger" @click="deletePermission(permission)">删除</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="permissions.length" class="pagination">
+            <div class="pagination-info">
+              第 {{ permissionPagination.page }} 页 / 共 {{ permissionTotalPages }} 页
+            </div>
+            <div class="pagination-controls">
+              <button
+                class="ghost-btn"
+                @click="changePermissionPage(permissionPagination.page - 1)"
+                :disabled="permissionPagination.page === 1"
+              >
+                上一页
+              </button>
+              <button
+                class="ghost-btn"
+                @click="changePermissionPage(permissionPagination.page + 1)"
+                :disabled="permissionPagination.page === permissionTotalPages"
+              >
+                下一页
+              </button>
+              <select
+                v-model.number="permissionPagination.size"
+                @change="changePermissionPage(1)"
+                class="page-size"
+              >
+                <option :value="5">5 条/页</option>
+                <option :value="8">8 条/页</option>
+                <option :value="12">12 条/页</option>
+              </select>
+            </div>
           </div>
         </section>
       </template>
