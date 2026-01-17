@@ -26,8 +26,8 @@ public class User {
     private String email;
     // 手机号
     private String phone;
-    // 部门
-    private String department;
+    // 部门 ID
+    private String departmentId;
     // 职位名称
     private String title;
     // 直属上级 ID
@@ -48,6 +48,8 @@ public class User {
     private Map<String, Object> attributes = new HashMap<String, Object>();
     // 创建时间
     private Date createdAt;
+    // 更新时间
+    private Date updatedAt;
 
     public String getId() {
         return id;
@@ -113,12 +115,12 @@ public class User {
         this.phone = phone;
     }
 
-    public String getDepartment() {
-        return department;
+    public String getDepartmentId() {
+        return departmentId;
     }
 
-    public void setDepartment(String department) {
-        this.department = department;
+    public void setDepartmentId(String departmentId) {
+        this.departmentId = departmentId;
     }
 
     public String getTitle() {
@@ -199,5 +201,13 @@ public class User {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
