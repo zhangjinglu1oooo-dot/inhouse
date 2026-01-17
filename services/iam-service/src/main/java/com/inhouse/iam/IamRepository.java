@@ -70,6 +70,27 @@ public class IamRepository {
         return users;
     }
 
+    public List<User> listUsersPage(int offset, int limit) {
+        List<User> users = jdbcTemplate.query(
+                "SELECT u.*, p.department_id, p.title, p.manager_id, p.location, p.hire_date "
+                        + "FROM iam_users u "
+                        + "LEFT JOIN iam_user_profiles p ON u.id = p.user_id "
+                        + "ORDER BY u.created_at DESC "
+                        + "LIMIT ? OFFSET ?",
+                new UserRowMapper(),
+                limit,
+                offset);
+        users.forEach(this::loadUserRelations);
+        return users;
+    }
+
+    public int countUsers() {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(1) FROM iam_users",
+                Integer.class);
+        return count == null ? 0 : count;
+    }
+
     public Optional<User> findUserByAccount(String account) {
         try {
             User user = jdbcTemplate.queryForObject(
@@ -85,6 +106,102 @@ public class IamRepository {
             return Optional.ofNullable(user);
         } catch (EmptyResultDataAccessException ex) {
             return Optional.empty();
+        }
+    }
+
+    public Optional<User> findUserById(String userId) {
+        try {
+            User user = jdbcTemplate.queryForObject(
+                    "SELECT u.*, p.department_id, p.title, p.manager_id, p.location, p.hire_date "
+                            + "FROM iam_users u "
+                            + "LEFT JOIN iam_user_profiles p ON u.id = p.user_id "
+                            + "WHERE u.id = ?",
+                    new UserRowMapper(),
+                    userId);
+            if (user != null) {
+                loadUserRelations(user);
+            }
+            return Optional.ofNullable(user);
+        } catch (EmptyResultDataAccessException ex) {
+            return Optional.empty();
+        }
+    }
+
+    public void updateUser(User user) {
+        jdbcTemplate.update(
+                "UPDATE iam_users SET employee_id = ?, username = ?, password_hash = ?, password_salt = ?, "
+                        + "display_name = ?, email = ?, phone = ?, status = ?, avatar_url = ?, last_login_at = ?, "
+                        + "updated_at = ? WHERE id = ?",
+                user.getEmployeeId(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getPasswordSalt(),
+                user.getDisplayName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getStatus(),
+                user.getAvatarUrl(),
+                toTimestamp(user.getLastLoginAt()),
+                toTimestamp(user.getUpdatedAt()),
+                user.getId());
+
+        int updated = jdbcTemplate.update(
+                "UPDATE iam_user_profiles SET department_id = ?, title = ?, manager_id = ?, location = ?, hire_date = ? "
+                        + "WHERE user_id = ?",
+                user.getDepartmentId(),
+                user.getTitle(),
+                user.getManagerId(),
+                user.getLocation(),
+                toSqlDate(user.getHireDate()),
+                user.getId());
+        if (updated == 0) {
+            jdbcTemplate.update(
+                    "INSERT INTO iam_user_profiles (user_id, department_id, title, manager_id, location, hire_date) "
+                            + "VALUES (?, ?, ?, ?, ?, ?)",
+                    user.getId(),
+                    user.getDepartmentId(),
+                    user.getTitle(),
+                    user.getManagerId(),
+                    user.getLocation(),
+                    toSqlDate(user.getHireDate()));
+        }
+    }
+
+    public void deleteUser(String userId) {
+        jdbcTemplate.update("DELETE FROM iam_user_roles WHERE user_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM iam_user_attributes WHERE user_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM iam_user_profiles WHERE user_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM iam_users WHERE id = ?", userId);
+    }
+
+    public void replaceUserRoles(String userId, List<String> roleIds) {
+        jdbcTemplate.update("DELETE FROM iam_user_roles WHERE user_id = ?", userId);
+        if (roleIds == null || roleIds.isEmpty()) {
+            return;
+        }
+        Timestamp createdAt = toTimestamp(new java.util.Date());
+        for (String roleId : roleIds) {
+            jdbcTemplate.update(
+                    "INSERT INTO iam_user_roles (user_id, role_id, created_at) VALUES (?, ?, ?)",
+                    userId,
+                    roleId,
+                    createdAt);
+        }
+    }
+
+    public void replaceUserAttributes(String userId, Map<String, Object> attributes) {
+        jdbcTemplate.update("DELETE FROM iam_user_attributes WHERE user_id = ?", userId);
+        if (attributes == null || attributes.isEmpty()) {
+            return;
+        }
+        Timestamp createdAt = toTimestamp(new java.util.Date());
+        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+            jdbcTemplate.update(
+                    "INSERT INTO iam_user_attributes (user_id, attr_key, attr_value, created_at) VALUES (?, ?, ?, ?)",
+                    userId,
+                    entry.getKey(),
+                    writeJsonValue(entry.getValue()),
+                    createdAt);
         }
     }
 
@@ -116,6 +233,126 @@ public class IamRepository {
                 new RoleRowMapper());
         roles.forEach(this::loadRolePermissions);
         return roles;
+    }
+
+    public List<Role> listRolesPage(int offset, int limit) {
+        List<Role> roles = jdbcTemplate.query(
+                "SELECT * FROM iam_roles ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                new RoleRowMapper(),
+                limit,
+                offset);
+        roles.forEach(this::loadRolePermissions);
+        return roles;
+    }
+
+    public int countRoles() {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(1) FROM iam_roles",
+                Integer.class);
+        return count == null ? 0 : count;
+    }
+
+    public Optional<Role> findRoleById(String roleId) {
+        try {
+            Role role = jdbcTemplate.queryForObject(
+                    "SELECT * FROM iam_roles WHERE id = ?",
+                    new RoleRowMapper(),
+                    roleId);
+            if (role != null) {
+                loadRolePermissions(role);
+            }
+            return Optional.ofNullable(role);
+        } catch (EmptyResultDataAccessException ex) {
+            return Optional.empty();
+        }
+    }
+
+    public void updateRole(Role role) {
+        jdbcTemplate.update(
+                "UPDATE iam_roles SET name = ?, description = ? WHERE id = ?",
+                role.getName(),
+                role.getDescription(),
+                role.getId());
+        if (role.getPermissions() != null) {
+            jdbcTemplate.update("DELETE FROM iam_role_permissions WHERE role_id = ?", role.getId());
+            Timestamp createdAt = toTimestamp(new java.util.Date());
+            for (RolePermission permission : role.getPermissions()) {
+                String permissionId = ensurePermission(permission);
+                jdbcTemplate.update(
+                        "INSERT INTO iam_role_permissions (role_id, permission_id, effect, created_at) "
+                                + "VALUES (?, ?, ?, ?)",
+                        role.getId(),
+                        permissionId,
+                        permission.getEffect(),
+                        createdAt);
+            }
+        }
+    }
+
+    public void deleteRole(String roleId) {
+        jdbcTemplate.update("DELETE FROM iam_user_roles WHERE role_id = ?", roleId);
+        jdbcTemplate.update("DELETE FROM iam_role_permissions WHERE role_id = ?", roleId);
+        jdbcTemplate.update("DELETE FROM iam_roles WHERE id = ?", roleId);
+    }
+
+    public void savePermission(Permission permission) {
+        jdbcTemplate.update(
+                "INSERT INTO iam_permissions (id, app, feature, resource, description, created_at) "
+                        + "VALUES (?, ?, ?, ?, ?, ?)",
+                permission.getId(),
+                permission.getApp(),
+                permission.getFeature(),
+                permission.getResource(),
+                permission.getDescription(),
+                toTimestamp(permission.getCreatedAt()));
+    }
+
+    public List<Permission> listPermissions() {
+        return jdbcTemplate.query(
+                "SELECT * FROM iam_permissions ORDER BY created_at DESC",
+                new PermissionRowMapper());
+    }
+
+    public List<Permission> listPermissionsPage(int offset, int limit) {
+        return jdbcTemplate.query(
+                "SELECT * FROM iam_permissions ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                new PermissionRowMapper(),
+                limit,
+                offset);
+    }
+
+    public int countPermissions() {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(1) FROM iam_permissions",
+                Integer.class);
+        return count == null ? 0 : count;
+    }
+
+    public Optional<Permission> findPermissionById(String permissionId) {
+        try {
+            Permission permission = jdbcTemplate.queryForObject(
+                    "SELECT * FROM iam_permissions WHERE id = ?",
+                    new PermissionRowMapper(),
+                    permissionId);
+            return Optional.ofNullable(permission);
+        } catch (EmptyResultDataAccessException ex) {
+            return Optional.empty();
+        }
+    }
+
+    public void updatePermission(Permission permission) {
+        jdbcTemplate.update(
+                "UPDATE iam_permissions SET app = ?, feature = ?, resource = ?, description = ? WHERE id = ?",
+                permission.getApp(),
+                permission.getFeature(),
+                permission.getResource(),
+                permission.getDescription(),
+                permission.getId());
+    }
+
+    public void deletePermission(String permissionId) {
+        jdbcTemplate.update("DELETE FROM iam_role_permissions WHERE permission_id = ?", permissionId);
+        jdbcTemplate.update("DELETE FROM iam_permissions WHERE id = ?", permissionId);
     }
 
     private Timestamp toTimestamp(java.util.Date date) {
@@ -283,6 +520,20 @@ public class IamRepository {
             permission.setFeature(rs.getString("feature"));
             permission.setResource(rs.getString("resource"));
             permission.setEffect(rs.getString("effect"));
+            return permission;
+        }
+    }
+
+    private class PermissionRowMapper implements RowMapper<Permission> {
+        @Override
+        public Permission mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Permission permission = new Permission();
+            permission.setId(rs.getString("id"));
+            permission.setApp(rs.getString("app"));
+            permission.setFeature(rs.getString("feature"));
+            permission.setResource(rs.getString("resource"));
+            permission.setDescription(rs.getString("description"));
+            permission.setCreatedAt(rs.getTimestamp("created_at"));
             return permission;
         }
     }
