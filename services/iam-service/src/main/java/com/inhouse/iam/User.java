@@ -12,12 +12,34 @@ import java.util.Map;
 public class User {
     // 用户 ID
     private String id;
+    // 员工编号
+    private String employeeId;
     // 登录名
     private String username;
     // 密码（演示用明文存储）
     private String password;
     // 展示名称
     private String displayName;
+    // 邮箱
+    private String email;
+    // 手机号
+    private String phone;
+    // 部门
+    private String department;
+    // 职位名称
+    private String title;
+    // 直属上级 ID
+    private String managerId;
+    // 工作地点
+    private String location;
+    // 员工状态
+    private String status;
+    // 入职日期
+    private Date hireDate;
+    // 最近登录时间
+    private Date lastLoginAt;
+    // 头像地址
+    private String avatarUrl;
     // 角色列表
     private List<String> roles = new ArrayList<String>();
     // 自定义属性
@@ -31,6 +53,14 @@ public class User {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
     }
 
     public String getUsername() {
@@ -55,6 +85,86 @@ public class User {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(String managerId) {
+        this.managerId = managerId;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Date getHireDate() {
+        return hireDate;
+    }
+
+    public void setHireDate(Date hireDate) {
+        this.hireDate = hireDate;
+    }
+
+    public Date getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    public void setLastLoginAt(Date lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 
     public List<String> getRoles() {
