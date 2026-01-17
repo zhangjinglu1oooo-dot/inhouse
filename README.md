@@ -49,6 +49,18 @@ Each service is configured via `application.yml` under its `src/main/resources` 
 
 Gateway-to-permission checks are controlled by `permission.service.url` in `services/gateway-service/src/main/resources/application.yml` (defaults to `http://localhost:8082`).
 
+## Swagger / OpenAPI
+
+Each backend service exposes OpenAPI JSON at `/v3/api-docs` and Swagger UI at `/swagger-ui.html` once running. Example URLs (defaults):
+
+- IAM Service: `http://localhost:8081/swagger-ui.html`
+- Permission Service: `http://localhost:8082/swagger-ui.html`
+- Registry Service: `http://localhost:8083/swagger-ui.html`
+- AI Service: `http://localhost:8084/swagger-ui.html`
+- Event Service: `http://localhost:8085/swagger-ui.html`
+- Observability Service: `http://localhost:8086/swagger-ui.html`
+- Gateway Service: `http://localhost:8080/swagger-ui.html`
+
 ## MySQL 数据库
 
 本仓库提供了 MySQL 初始化脚本，位于 `db/mysql/init.sql`。请在已有 MySQL 实例中执行：
