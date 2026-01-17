@@ -61,27 +61,30 @@
     <main class="content">
       <template v-if="!isAuthenticated">
         <section class="panel login-panel">
-          <div class="login-brand">
-            <div class="logo">IH</div>
-            <div>
-              <div class="brand-title">Inhouse 管理后台</div>
-              <div class="brand-sub">账号登录后进入管理系统</div>
-            </div>
+          <div class="login-header">
+            <div class="login-title">Enterprise Integration System</div>
+            <div class="login-subtitle">Please log in to access your account</div>
           </div>
-          <div class="form-grid">
+          <div class="login-form">
             <div class="field">
-              <label>账号</label>
-              <input v-model="loginForm.account" placeholder="请输入账号" />
+              <label>Username</label>
+              <input v-model="loginForm.account" placeholder="Enter your username" />
             </div>
             <div class="field">
-              <label>密码</label>
-              <input v-model="loginForm.password" type="password" placeholder="请输入密码" />
+              <label>Password</label>
+              <input v-model="loginForm.password" type="password" placeholder="Enter your password" />
             </div>
-          </div>
-          <div class="panel-actions">
-            <button class="primary-btn" @click="login" :disabled="authLoading">登录系统</button>
+            <button class="primary-btn login-btn" @click="login" :disabled="authLoading">Login</button>
           </div>
           <div v-if="authError" class="status-banner error">{{ authError }}</div>
+          <div class="login-hint">
+            <div class="hint-title">Use the following credentials for demonstration:</div>
+            <div class="hint-card">
+              <div><strong>Admin:</strong> admin / admin123</div>
+              <div><strong>User:</strong> user1 / user123</div>
+              <div><strong>Developer:</strong> developer / dev123</div>
+            </div>
+          </div>
         </section>
       </template>
 

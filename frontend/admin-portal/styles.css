@@ -25,6 +25,7 @@ body {
   grid-template-columns: 1fr;
   align-items: center;
   justify-items: center;
+  background: radial-gradient(circle at top, #eef4ff 0%, #f6f8ff 35%, #eef2ff 100%);
 }
 
 .sidebar {
@@ -195,22 +196,72 @@ body {
 
 .login-panel {
   max-width: 520px;
-  width: min(520px, 90vw);
+  width: min(520px, 92vw);
   margin: 0 auto;
   text-align: center;
+  padding: 32px;
+  box-shadow: 0 18px 45px rgba(30, 64, 175, 0.12);
 }
 
-.login-brand {
-  display: flex;
-  align-items: center;
+.login-header {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.login-form {
+  display: grid;
+  gap: 16px;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.login-form .field label {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.login-form input {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.login-btn {
+  width: 100%;
   justify-content: center;
-  gap: 12px;
 }
 
-.login-brand .logo {
-  width: 52px;
-  height: 52px;
-  border-radius: 18px;
+.login-hint {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.hint-title {
+  font-weight: 600;
+}
+
+.hint-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: grid;
+  gap: 6px;
 }
 
 .panel-header {
