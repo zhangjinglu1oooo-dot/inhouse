@@ -8,30 +8,46 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
 <body>
-  <div id="app" class="layout">
+  <div id="app" class="layout" :class="{ collapsed: sidebarCollapsed }">
     <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">IH</div>
-        <div>
-          <div class="brand-title">Inhouse</div>
-          <div class="brand-sub">员工门户</div>
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="logo">IH</div>
+          <div class="brand-text">
+            <div class="brand-title">Inhouse</div>
+            <div class="brand-sub">员工门户</div>
+          </div>
         </div>
+        <button class="icon-btn sidebar-toggle" @click="toggleSidebar" :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'">
+          {{ sidebarCollapsed ? '⮞' : '⮜' }}
+        </button>
       </div>
       <button class="primary-btn">+ 新建协作</button>
       <nav class="nav">
-        <a class="nav-item active" href="system.html">概览</a>
-        <a class="nav-item" href="system.html#workspace">个人空间</a>
-        <a class="nav-item" href="system.html#apps">协作应用</a>
-        <a class="nav-item" href="system.html#knowledge">知识库</a>
-        <a class="nav-item" href="system.html#messages">消息中心</a>
-        <a class="nav-item" href="system.html#support">服务支持</a>
+        <a
+          class="nav-item"
+          v-for="item in visibleNavItems"
+          :key="item.id || item.label"
+          :href="item.href || 'system.html'"
+          :class="{ active: item.active }"
+        >
+          <span class="nav-icon" v-if="item.icon">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+        <div class="empty-state" v-if="!portalLoading && visibleNavItems.length === 0">
+          暂无可用导航
+        </div>
       </nav>
       <div class="sidebar-footer">
-        <img class="avatar" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=200&auto=format&fit=crop" alt="avatar" />
-        <div>
-          <div class="user-name">王梓涵</div>
-          <div class="user-role">产品运营 · 市场部</div>
-          <a class="link" href="index.html">退出登录</a>
+        <img class="avatar" :src="userProfile.avatar" alt="avatar" />
+        <div class="user-meta">
+          <div class="user-name">{{ userProfile.name }}</div>
+          <div class="user-role" v-if="userProfile.role">{{ userProfile.role }}</div>
+          <div class="user-actions">
+            <a class="link" :href="settingsUrl">设置</a>
+            <a class="link" v-if="canAccessAdmin" :href="adminPortalUrl">后台管理</a>
+            <a class="link" href="index.html">退出登录</a>
+          </div>
         </div>
       </div>
     </aside>
@@ -39,93 +55,52 @@
     <main class="content">
       <header class="topbar">
         <div>
-          <div class="breadcrumb">系统工作台 / 发现</div>
-          <h1>企业协作与 AI 助手入口</h1>
-          <p>汇聚常用服务、智能体与业务应用，打造高效的员工体验。</p>
+          <div class="breadcrumb">{{ portalMeta.breadcrumb }}</div>
+          <h1>{{ portalMeta.title }}</h1>
+          <p>{{ portalMeta.subtitle }}</p>
         </div>
         <div class="top-actions">
-          <input class="search" placeholder="搜索应用、流程或文档" />
-          <button class="icon-btn" aria-label="切换主题">🌙</button>
+          <input class="search" placeholder="搜索应用、流程或功能" />
           <button class="icon-btn" aria-label="通知">🔔</button>
         </div>
       </header>
 
-      <section class="hero" id="workspace">
-        <div>
-          <div class="tag">本周重点</div>
-          <h2>多模态协作引擎已就绪</h2>
-          <p>支持文档、会议、流程与数据洞察的一站式工作体验。</p>
-          <div class="hero-actions">
-            <button class="primary-btn">进入工作流</button>
-            <button class="ghost-btn">了解路线图</button>
-          </div>
-        </div>
-        <div class="hero-visual">
-          <div class="floating-card">实时协作</div>
-          <div class="floating-card">AI 总结</div>
-          <div class="floating-card">智能检索</div>
-        </div>
-      </section>
-
-      <section class="grid" id="apps">
-        <article class="glass-card" v-for="card in highlights" :key="card.title">
-          <div class="card-icon">{{ card.icon }}</div>
-          <h3>{{ card.title }}</h3>
-          <p>{{ card.description }}</p>
-          <button class="ghost-btn">{{ card.action }}</button>
-        </article>
-      </section>
-
-      <section class="panel" id="knowledge">
+      <section class="panel" id="apps">
         <div class="panel-header">
-          <h3>我的智能助手</h3>
-          <div class="chips">
-            <span class="chip" v-for="chip in chips" :key="chip">{{ chip }}</span>
-          </div>
+          <h3>可用应用</h3>
+          <p class="muted" v-if="portalLoading">正在同步后台配置...</p>
+          <p class="muted" v-else-if="portalError">{{ portalError }}</p>
         </div>
-        <div class="assistants">
-          <div class="assistant" v-for="assistant in assistants" :key="assistant.name">
-            <div class="assistant-icon">{{ assistant.icon }}</div>
-            <div>
-              <h4>{{ assistant.name }}</h4>
-              <p>{{ assistant.summary }}</p>
-            </div>
-            <button class="ghost-btn">打开</button>
-          </div>
+        <div class="grid" v-if="visibleApplications.length">
+          <article class="glass-card" v-for="app in visibleApplications" :key="app.id || app.name">
+            <div class="card-icon">{{ app.icon || '🧩' }}</div>
+            <h3>{{ app.name }}</h3>
+            <p>{{ app.description }}</p>
+            <a class="ghost-btn" :href="app.url || '#'">{{ app.actionLabel || '进入' }}</a>
+          </article>
         </div>
-      </section>
-
-      <section class="panel" id="messages">
-        <div class="panel-header">
-          <h3>消息与待办</h3>
-          <p>集中展示审批、提醒、工单与团队动态。</p>
-        </div>
-        <div class="notification-list">
-          <div class="notification">
-            <div>
-              <h4>市场活动预算审批</h4>
-              <p>需要你在 17:30 前完成审批。</p>
-            </div>
-            <span class="status-tag warning">待处理</span>
-          </div>
-          <div class="notification">
-            <div>
-              <h4>AI 会议纪要已生成</h4>
-              <p>销售例会纪要已发送至知识库。</p>
-            </div>
-            <span class="status-tag success">已同步</span>
-          </div>
+        <div class="empty-state" v-else-if="!portalLoading && !portalError">
+          暂无可用应用，请联系管理员开放权限。
         </div>
       </section>
 
-      <section class="panel" id="support">
+      <section class="panel" id="features">
         <div class="panel-header">
-          <h3>API 接入配置</h3>
-          <p>前端与后端分离调用入口（预留配置）。</p>
+          <h3>快捷功能</h3>
+          <p class="muted">根据后台策略展示可用功能入口。</p>
         </div>
-        <div class="api-form">
-          <input v-model="apiBase" placeholder="http://localhost:8080" />
-          <button class="primary-btn">保存</button>
+        <div class="assistants" v-if="visibleFeatures.length">
+          <div class="assistant" v-for="feature in visibleFeatures" :key="feature.id || feature.name">
+            <div class="assistant-icon">{{ feature.icon || '⚡' }}</div>
+            <div>
+              <h4>{{ feature.name }}</h4>
+              <p>{{ feature.description }}</p>
+            </div>
+            <a class="ghost-btn" :href="feature.url || '#'">{{ feature.actionLabel || '打开' }}</a>
+          </div>
+        </div>
+        <div class="empty-state" v-else-if="!portalLoading && !portalError">
+          暂无可用功能，请联系管理员开放权限。
         </div>
       </section>
     </main>
