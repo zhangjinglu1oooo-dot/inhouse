@@ -35,6 +35,14 @@ mvn -pl services/observability-service spring-boot:run
 mvn -pl services/gateway-service spring-boot:run
 ```
 
+## One-click startup script
+
+For convenience, you can build and start all services with a single script. It will write logs to `./logs` and keep running until you stop it with `Ctrl+C`:
+
+```bash
+./scripts/start-all.sh
+```
+
 ## Configuration
 
 Each service is configured via `application.yml` under its `src/main/resources` folder. Update `server.port` to change the port per service, or override via `SPRING_APPLICATION_JSON`/`-Dserver.port=...` at runtime.
