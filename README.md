@@ -71,7 +71,11 @@ export INHOUSE_DB_PASSWORD=root
 
 ## 前端门户
 
-前端代码位于 `frontend/`，采用 Vue 3（CDN 方式）分别提供员工门户与管理后台。以下命令需要已安装 Node.js，`npx` 会临时下载并运行 `http-server`：
+前端代码位于 `frontend/`，采用 Vue 3（CDN 方式）分别提供员工门户与管理后台。当前实现为**静态演示页面**（数据为前端内置示例，未对接后端接口，也未包含路由跳转逻辑），用于展示视觉与布局效果。
+
+> 常见误区：如果在仓库根目录启动静态服务器，会看到目录索引页（类似 `Index of /`）。请确保把静态服务器的根目录指向 `frontend/user-portal` 或 `frontend/admin-portal`。
+
+以下命令需要已安装 Node.js，`npx` 会临时下载并运行 `http-server`：
 
 ```bash
 cd frontend/user-portal
@@ -100,3 +104,4 @@ npx http-server -p 5174
 ## Notes
 - Each service stores data in memory for this MVP; restart clears data.
 - Gateway calls Permission Service at `permission.service.url` (default `http://localhost:8082`).
+- Frontend portals are static demos with mock data and do not call backend APIs yet.
