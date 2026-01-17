@@ -69,6 +69,16 @@ export INHOUSE_DB_PASSWORD=root
 
 如需调整连接信息，也可以直接修改各服务的 `spring.datasource.*` 配置项。
 
+## Redis
+
+IAM 服务会将登录 Token 存入 Redis 并依赖 TTL 进行过期控制。默认连接本机 Redis，可通过环境变量调整并启用认证：
+
+```bash
+export INHOUSE_REDIS_HOST=localhost
+export INHOUSE_REDIS_PORT=6379
+export INHOUSE_REDIS_PASSWORD=your-redis-password
+```
+
 ## 前端门户
 
 前端代码位于 `frontend/`，采用 Vue 3（CDN 方式）分别提供员工门户与管理后台。当前实现为**静态演示页面**（数据为前端内置示例，未对接后端接口，也未包含路由跳转逻辑），用于展示视觉与布局效果。
