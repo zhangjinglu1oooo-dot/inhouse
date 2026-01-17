@@ -10,38 +10,79 @@
 <body>
   <div id="admin" :class="{ layout: isAuthenticated, 'login-page': !isAuthenticated }">
     <div v-if="!isAuthenticated" class="login-screen">
-      <div class="login-card">
-        <div class="login-brand">
-          <div class="logo">IH</div>
-          <div>
-            <div class="brand-title">Inhouse 管理后台</div>
-            <div class="brand-sub">请使用管理员账号登录</div>
+      <div class="login-shell">
+        <section class="login-hero">
+          <div class="login-brand">
+            <div class="logo">IH</div>
+            <div>
+              <div class="brand-title">Inhouse 管理后台</div>
+              <div class="brand-sub">统一管理组织、权限与审计安全</div>
+            </div>
           </div>
-        </div>
-        <div class="login-form">
-          <label class="field">
-            <span>管理员账号</span>
-            <input v-model="loginForm.username" placeholder="admin" autocomplete="username" />
-          </label>
-          <label class="field">
-            <span>登录密码</span>
-            <input
-              v-model="loginForm.password"
-              type="password"
-              placeholder="请输入密码"
-              autocomplete="current-password"
-            />
-          </label>
-          <label class="remember-row">
-            <input type="checkbox" v-model="loginForm.remember" />
-            记住登录状态
-          </label>
-          <div v-if="loginError" class="status-banner error">{{ loginError }}</div>
-          <button class="primary-btn login-btn" @click="submitLogin" :disabled="loginLoading">
-            {{ loginLoading ? '登录中...' : '登录管理后台' }}
-          </button>
-          <div class="login-tip">演示账号：admin / Admin@123</div>
-        </div>
+          <h1>构建可信的企业权限中枢</h1>
+          <p>在一个平台完成账号、权限、审计与应用接入的闭环管理，减少运维摩擦并提升合规效率。</p>
+          <div class="hero-metrics">
+            <div class="metric-card">
+              <span>在线应用</span>
+              <strong>86</strong>
+            </div>
+            <div class="metric-card">
+              <span>安全策略</span>
+              <strong>312</strong>
+            </div>
+            <div class="metric-card">
+              <span>合规工单</span>
+              <strong>24h</strong>
+            </div>
+          </div>
+          <div class="hero-note">
+            <div>
+              <span>安全提醒</span>
+              <strong>启用二次验证与设备绑定</strong>
+            </div>
+            <p>系统将自动检测异地登录与高风险操作。</p>
+          </div>
+        </section>
+        <section class="login-card">
+          <div class="login-card-header">
+            <h2>管理员登录</h2>
+            <p>请输入管理员账号完成身份验证。</p>
+          </div>
+          <div class="login-form">
+            <label class="field">
+              <span>管理员账号</span>
+              <input v-model="loginForm.username" placeholder="admin" autocomplete="username" />
+            </label>
+            <label class="field">
+              <span>登录密码</span>
+              <input
+                v-model="loginForm.password"
+                type="password"
+                placeholder="请输入密码"
+                autocomplete="current-password"
+              />
+            </label>
+            <label class="remember-row">
+              <input type="checkbox" v-model="loginForm.remember" />
+              记住登录状态
+            </label>
+            <div v-if="loginError" class="status-banner error">{{ loginError }}</div>
+            <button class="primary-btn login-btn" @click="submitLogin" :disabled="loginLoading">
+              {{ loginLoading ? '登录中...' : '登录管理后台' }}
+            </button>
+            <div class="login-links">
+              <span>忘记密码请联系安全中心</span>
+              <span class="login-tip">演示账号：admin / Admin@123</span>
+            </div>
+          </div>
+          <div class="login-footer">
+            <div>
+              <strong>系统状态</strong>
+              <span>全部服务运行正常</span>
+            </div>
+            <button class="ghost-btn">获取使用手册</button>
+          </div>
+        </section>
       </div>
     </div>
 
@@ -51,7 +92,17 @@
           <div class="logo">IH</div>
           <div>
             <div class="brand-title">Inhouse</div>
-            <div class="brand-sub">管理后台</div>
+            <div class="brand-sub">安全运营中心</div>
+          </div>
+        </div>
+        <div class="sidebar-meta">
+          <div>
+            <span>今日风险</span>
+            <strong>3 起</strong>
+          </div>
+          <div>
+            <span>待审批</span>
+            <strong>7 项</strong>
           </div>
         </div>
         <nav class="nav">
@@ -98,17 +149,39 @@
 
       <main class="content">
         <header class="topbar">
-          <div>
+          <div class="topbar-left">
             <div class="breadcrumb">管理后台 / {{ viewMeta.breadcrumb }}</div>
             <h1>{{ viewMeta.title }}</h1>
             <p>{{ viewMeta.subtitle }}</p>
           </div>
           <div class="top-actions">
-            <input class="search" v-model="searchText" placeholder="搜索员工、部门或应用" />
+            <div class="search-wrap">
+              <span>🔍</span>
+              <input class="search" v-model="searchText" placeholder="搜索员工、部门或应用" />
+            </div>
             <button class="icon-btn">⚙️</button>
             <button class="icon-btn">📩</button>
+            <button class="primary-btn">新建工单</button>
           </div>
         </header>
+
+        <section class="quick-actions">
+          <div class="action-card">
+            <h4>账号风险检测</h4>
+            <p>即时识别异常登录与高危权限变更。</p>
+            <button class="ghost-btn">查看告警</button>
+          </div>
+          <div class="action-card">
+            <h4>策略模板中心</h4>
+            <p>沉淀授权策略，加速跨部门审批。</p>
+            <button class="ghost-btn">配置策略</button>
+          </div>
+          <div class="action-card">
+            <h4>应用接入助手</h4>
+            <p>跟进应用接入状态与验收进度。</p>
+            <button class="ghost-btn">查看进度</button>
+          </div>
+        </section>
 
         <template v-if="currentView === 'overview'">
         <section class="stats">
