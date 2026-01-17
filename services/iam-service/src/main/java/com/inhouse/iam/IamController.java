@@ -42,12 +42,14 @@ public class IamController {
         user.setUpdatedAt(now);
         ensurePasswordHashed(user);
         repository.saveUser(user);
-        return user;
+        return sanitizeUser(user);
     }
 
     @GetMapping("/users")
     public List<User> listUsers() {
-        return new ArrayList<User>(repository.listUsers());
+        List<User> users = new ArrayList<User>(repository.listUsers());
+        users.forEach(this::sanitizeUser);
+        return users;
     }
 
     @PostMapping("/roles")
@@ -75,5 +77,11 @@ public class IamController {
             user.setPassword(passwordHash.getHash());
             user.setPasswordSalt(passwordHash.getSalt());
         }
+    }
+
+    private User sanitizeUser(User user) {
+        user.setPassword(null);
+        user.setPasswordSalt(null);
+        return user;
     }
 }

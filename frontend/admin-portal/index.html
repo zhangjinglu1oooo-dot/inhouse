@@ -18,12 +18,15 @@
         </div>
       </div>
       <nav class="nav">
-        <a class="nav-item active">总览</a>
-        <a class="nav-item">组织架构</a>
-        <a class="nav-item">人员管理</a>
-        <a class="nav-item">权限策略</a>
-        <a class="nav-item">应用注册</a>
-        <a class="nav-item">审计日志</a>
+        <a
+          v-for="item in navItems"
+          :key="item.id"
+          class="nav-item"
+          :class="{ active: currentView === item.id }"
+          @click="setView(item.id)"
+        >
+          {{ item.label }}
+        </a>
       </nav>
       <div class="sidebar-footer">
         <div>
@@ -36,49 +39,184 @@
     <main class="content">
       <header class="topbar">
         <div>
-          <div class="breadcrumb">管理后台 / 总览</div>
-          <h1>组织与权限运营控制台</h1>
-          <p>统一管理员工信息、权限策略与应用接入状态。</p>
+          <div class="breadcrumb">管理后台 / {{ viewMeta.breadcrumb }}</div>
+          <h1>{{ viewMeta.title }}</h1>
+          <p>{{ viewMeta.subtitle }}</p>
         </div>
         <div class="top-actions">
-          <input class="search" placeholder="搜索员工、部门或应用" />
+          <input class="search" v-model="searchText" placeholder="搜索员工、部门或应用" />
           <button class="icon-btn">⚙️</button>
           <button class="icon-btn">📩</button>
         </div>
       </header>
 
-      <section class="stats">
-        <div class="stat-card" v-for="stat in stats" :key="stat.label">
-          <div class="stat-label">{{ stat.label }}</div>
-          <div class="stat-value">{{ stat.value }}</div>
-          <div class="stat-note">{{ stat.note }}</div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <h3>员工信息维护</h3>
-          <p>完善员工画像，用于权限、流程与服务推荐。</p>
-        </div>
-        <div class="form-grid">
-          <input v-for="field in employeeFields" :key="field" :placeholder="field" />
-          <button class="primary-btn">保存员工档案</button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <h3>策略发布与审计</h3>
-          <p>审批流、风险提示与最近操作摘要。</p>
-        </div>
-        <div class="audit-list">
-          <div class="audit-item" v-for="audit in audits" :key="audit.title">
-            <div class="audit-title">{{ audit.title }}</div>
-            <div class="audit-meta">{{ audit.meta }}</div>
-            <button class="ghost-btn">查看详情</button>
+      <template v-if="currentView === 'overview'">
+        <section class="stats">
+          <div class="stat-card" v-for="stat in stats" :key="stat.label">
+            <div class="stat-label">{{ stat.label }}</div>
+            <div class="stat-value">{{ stat.value }}</div>
+            <div class="stat-note">{{ stat.note }}</div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h3>员工信息维护</h3>
+            <p>完善员工画像，用于权限、流程与服务推荐。</p>
+          </div>
+          <div class="form-grid">
+            <input v-for="field in employeeFields" :key="field" :placeholder="field" />
+            <button class="primary-btn">保存员工档案</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h3>策略发布与审计</h3>
+            <p>审批流、风险提示与最近操作摘要。</p>
+          </div>
+          <div class="audit-list">
+            <div class="audit-item" v-for="audit in audits" :key="audit.title">
+              <div>
+                <div class="audit-title">{{ audit.title }}</div>
+                <div class="audit-meta">{{ audit.meta }}</div>
+              </div>
+              <button class="ghost-btn">查看详情</button>
+            </div>
+          </div>
+        </section>
+      </template>
+
+      <template v-else-if="currentView === 'users'">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>新增员工账号</h3>
+              <p>创建账号后将同步写入 IAM 数据库。</p>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost-btn" @click="resetUserForm">重置</button>
+              <button class="primary-btn" @click="createUser" :disabled="userLoading">保存账号</button>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>员工编号</label>
+              <input v-model="userForm.employeeId" placeholder="EMP-10001" />
+            </div>
+            <div class="field">
+              <label>账号</label>
+              <input v-model="userForm.username" placeholder="登录账号" />
+            </div>
+            <div class="field">
+              <label>姓名</label>
+              <input v-model="userForm.displayName" placeholder="姓名" />
+            </div>
+            <div class="field">
+              <label>初始密码</label>
+              <input v-model="userForm.password" type="password" placeholder="初始密码" />
+            </div>
+            <div class="field">
+              <label>邮箱</label>
+              <input v-model="userForm.email" placeholder="name@company.com" />
+            </div>
+            <div class="field">
+              <label>手机号</label>
+              <input v-model="userForm.phone" placeholder="手机号" />
+            </div>
+            <div class="field">
+              <label>部门 ID</label>
+              <input v-model="userForm.departmentId" placeholder="部门 ID" />
+            </div>
+            <div class="field">
+              <label>职位</label>
+              <input v-model="userForm.title" placeholder="职位" />
+            </div>
+            <div class="field">
+              <label>直属上级</label>
+              <input v-model="userForm.managerId" placeholder="上级 ID" />
+            </div>
+            <div class="field">
+              <label>工位地点</label>
+              <input v-model="userForm.location" placeholder="工位地点" />
+            </div>
+            <div class="field">
+              <label>入职日期</label>
+              <input v-model="userForm.hireDate" type="date" />
+            </div>
+            <div class="field">
+              <label>状态</label>
+              <select v-model="userForm.status">
+                <option value="active">启用</option>
+                <option value="inactive">停用</option>
+                <option value="locked">锁定</option>
+              </select>
+            </div>
+          </div>
+          <div v-if="userError" class="status-banner error">{{ userError }}</div>
+          <div v-if="userSuccess" class="status-banner success">{{ userSuccess }}</div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>用户列表</h3>
+              <p>共 {{ filteredUsers.length }} 位员工账号</p>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost-btn" @click="loadUsers" :disabled="userLoading">刷新列表</button>
+            </div>
+          </div>
+          <div v-if="userLoading" class="empty-state">正在加载用户数据...</div>
+          <div v-else-if="filteredUsers.length === 0" class="empty-state">
+            暂无用户数据，请先新增员工账号。
+          </div>
+          <div v-else class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>员工编号</th>
+                  <th>姓名</th>
+                  <th>账号</th>
+                  <th>部门</th>
+                  <th>职位</th>
+                  <th>状态</th>
+                  <th>联系方式</th>
+                  <th>入职日期</th>
+                  <th>创建时间</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="user in filteredUsers" :key="user.id">
+                  <td>{{ user.employeeId }}</td>
+                  <td>
+                    <div class="user-name">{{ user.displayName || '-' }}</div>
+                    <div class="user-sub">{{ user.email || '未填写邮箱' }}</div>
+                  </td>
+                  <td>{{ user.username }}</td>
+                  <td>{{ user.departmentId || '-' }}</td>
+                  <td>{{ user.title || '-' }}</td>
+                  <td>
+                    <span class="status-pill" :class="user.status">{{ statusLabel(user.status) }}</span>
+                  </td>
+                  <td>
+                    <div>{{ user.phone || '-' }}</div>
+                    <div class="user-sub">{{ user.location || '-' }}</div>
+                  </td>
+                  <td>{{ formatDate(user.hireDate) }}</td>
+                  <td>{{ formatDate(user.createdAt) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </template>
+
+      <template v-else>
+        <section class="panel empty-state">
+          该模块正在建设中，敬请期待。
+        </section>
+      </template>
     </main>
   </div>
 

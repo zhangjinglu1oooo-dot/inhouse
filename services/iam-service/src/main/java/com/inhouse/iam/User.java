@@ -1,5 +1,6 @@
 package com.inhouse.iam;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,8 +18,10 @@ public class User {
     // 登录名
     private String username;
     // 密码哈希
+    @JsonIgnore
     private String password;
     // 密码盐值
+    @JsonIgnore
     private String passwordSalt;
     // 展示名称
     private String displayName;
