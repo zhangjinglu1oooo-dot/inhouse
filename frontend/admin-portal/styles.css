@@ -21,6 +21,12 @@ body {
   min-height: 100vh;
 }
 
+.layout-login {
+  grid-template-columns: 1fr;
+  align-items: center;
+  justify-items: center;
+}
+
 .sidebar {
   background: #0f172a;
   color: #e2e8f0;
@@ -189,7 +195,22 @@ body {
 
 .login-panel {
   max-width: 520px;
-  margin: 40px auto;
+  width: min(520px, 90vw);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.login-brand .logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
 }
 
 .panel-header {

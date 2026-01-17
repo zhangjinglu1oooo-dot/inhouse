@@ -8,8 +8,8 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
 <body>
-  <div id="admin" class="layout">
-    <aside class="sidebar">
+  <div id="admin" class="layout" :class="{ 'layout-login': !isAuthenticated }">
+    <aside v-if="isAuthenticated" class="sidebar">
       <div class="brand">
         <div class="logo">IH</div>
         <div>
@@ -61,10 +61,11 @@
     <main class="content">
       <template v-if="!isAuthenticated">
         <section class="panel login-panel">
-          <div class="panel-header">
+          <div class="login-brand">
+            <div class="logo">IH</div>
             <div>
-              <h3>管理员登录</h3>
-              <p>登录后才能访问用户、角色与权限管理模块。</p>
+              <div class="brand-title">Inhouse 管理后台</div>
+              <div class="brand-sub">账号登录后进入管理系统</div>
             </div>
           </div>
           <div class="form-grid">
@@ -78,7 +79,7 @@
             </div>
           </div>
           <div class="panel-actions">
-            <button class="primary-btn" @click="login" :disabled="authLoading">登录</button>
+            <button class="primary-btn" @click="login" :disabled="authLoading">登录系统</button>
           </div>
           <div v-if="authError" class="status-banner error">{{ authError }}</div>
         </section>
