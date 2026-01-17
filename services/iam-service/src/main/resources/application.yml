@@ -1,0 +1,10 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: iam-service
+  datasource:
+    url: jdbc:mysql://${INHOUSE_DB_HOST:localhost}:${INHOUSE_DB_PORT:3306}/${INHOUSE_DB_NAME:inhouse}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${INHOUSE_DB_USERNAME:root}
+    password: ${INHOUSE_DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
