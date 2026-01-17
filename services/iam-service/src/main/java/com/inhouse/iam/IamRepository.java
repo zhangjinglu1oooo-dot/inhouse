@@ -36,12 +36,13 @@ public class IamRepository {
 
     public void saveUser(User user) {
         jdbcTemplate.update(
-                "INSERT INTO iam_users (id, employee_id, username, password, display_name, email, phone, department, title, manager_id, location, status, hire_date, last_login_at, avatar_url, roles, attributes, created_at) "
-                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO iam_users (id, employee_id, username, password, password_salt, display_name, email, phone, department, title, manager_id, location, status, hire_date, last_login_at, avatar_url, roles, attributes, created_at) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 user.getId(),
                 user.getEmployeeId(),
                 user.getUsername(),
                 user.getPassword(),
+                user.getPasswordSalt(),
                 user.getDisplayName(),
                 user.getEmail(),
                 user.getPhone(),
@@ -62,13 +63,12 @@ public class IamRepository {
         return jdbcTemplate.query("SELECT * FROM iam_users ORDER BY created_at DESC", new UserRowMapper());
     }
 
-    public Optional<User> findUserByUsernameAndPassword(String username, String password) {
+    public Optional<User> findUserByAccount(String account) {
         try {
             User user = jdbcTemplate.queryForObject(
-                    "SELECT * FROM iam_users WHERE username = ? AND password = ?",
+                    "SELECT * FROM iam_users WHERE username = ?",
                     new UserRowMapper(),
-                    username,
-                    password);
+                    account);
             return Optional.ofNullable(user);
         } catch (EmptyResultDataAccessException ex) {
             return Optional.empty();
@@ -126,6 +126,7 @@ public class IamRepository {
             user.setEmployeeId(rs.getString("employee_id"));
             user.setUsername(rs.getString("username"));
             user.setPassword(rs.getString("password"));
+            user.setPasswordSalt(rs.getString("password_salt"));
             user.setDisplayName(rs.getString("display_name"));
             user.setEmail(rs.getString("email"));
             user.setPhone(rs.getString("phone"));

@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS iam_users (
     employee_id VARCHAR(64) NOT NULL,
     username VARCHAR(64) NOT NULL,
     password VARCHAR(128) NOT NULL,
+    password_salt VARCHAR(128) NOT NULL,
     display_name VARCHAR(128),
     email VARCHAR(128),
     phone VARCHAR(32),

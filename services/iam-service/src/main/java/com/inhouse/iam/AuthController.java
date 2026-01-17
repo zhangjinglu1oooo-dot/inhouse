@@ -20,19 +20,54 @@ public class AuthController {
     private final IamRepository repository;
     // Token 服务
     private final TokenService tokenService;
+    // 密码服务
+    private final PasswordService passwordService;
 
-    public AuthController(IamRepository repository, TokenService tokenService) {
+    public AuthController(IamRepository repository, TokenService tokenService, PasswordService passwordService) {
         this.repository = repository;
         this.tokenService = tokenService;
+        this.passwordService = passwordService;
     }
 
     @PostMapping("/login")
     public TokenResponse login(@RequestBody LoginRequest request) {
-        // 简单用户名/密码校验
+        // 姓名 + 密码校验
         return repository
-                .findUserByUsernameAndPassword(request.getUsername(), request.getPassword())
+                .findUserByAccount(request.getAccount())
+                .filter(user -> passwordService.matches(
+                        request.getPassword(),
+                        user.getPasswordSalt(),
+                        user.getPassword()))
                 .map(user -> tokenService.issueToken(user.getId()))
                 .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+    }
+
+    @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    public User register(@RequestBody RegisterRequest request) {
+        if (request.getAccount() == null || request.getAccount().trim().isEmpty()) {
+            throw new IllegalArgumentException("Account is required");
+        }
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+
+        User user = new User();
+        user.setId(java.util.UUID.randomUUID().toString());
+        user.setEmployeeId("EMP-" + java.util.UUID.randomUUID().toString().substring(0, 8));
+        user.setUsername(request.getAccount().trim());
+        user.setEmail(request.getEmail().trim());
+        user.setDisplayName(request.getAccount().trim());
+        user.setStatus("active");
+        user.setCreatedAt(new java.util.Date());
+        PasswordHash passwordHash = passwordService.hashPassword(request.getPassword());
+        user.setPassword(passwordHash.getHash());
+        user.setPasswordSalt(passwordHash.getSalt());
+        repository.saveUser(user);
+        return sanitizeUser(user);
     }
 
     @PostMapping("/validate")
@@ -46,5 +81,11 @@ public class AuthController {
     public String handleAuthError(IllegalArgumentException ex) {
         // 认证失败返回 401
         return ex.getMessage();
+    }
+
+    private User sanitizeUser(User user) {
+        user.setPassword(null);
+        user.setPasswordSalt(null);
+        return user;
     }
 }
