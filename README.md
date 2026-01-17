@@ -37,9 +37,9 @@ mvn -pl services/gateway-service spring-boot:run
 
 ## Configuration
 
-Each service is configured via `application.properties` under its `src/main/resources` folder. Update `server.port` to change the port per service, or override via `SPRING_APPLICATION_JSON`/`-Dserver.port=...` at runtime.
+Each service is configured via `application.yml` under its `src/main/resources` folder. Update `server.port` to change the port per service, or override via `SPRING_APPLICATION_JSON`/`-Dserver.port=...` at runtime.
 
-Gateway-to-permission checks are controlled by `permission.service.url` in `services/gateway-service/src/main/resources/application.properties` (defaults to `http://localhost:8082`).
+Gateway-to-permission checks are controlled by `permission.service.url` in `services/gateway-service/src/main/resources/application.yml` (defaults to `http://localhost:8082`).
 
 ## MySQL 数据库
 
@@ -49,7 +49,7 @@ Gateway-to-permission checks are controlled by `permission.service.url` in `serv
 mysql -u root -p < db/mysql/init.sql
 ```
 
-默认会创建 `inhouse` 数据库并初始化表结构（详见 `db/mysql/init.sql`）。服务会通过 `application.properties` 连接数据库，可使用环境变量覆盖：
+默认会创建 `inhouse` 数据库并初始化表结构（详见 `db/mysql/init.sql`）。服务会通过 `application.yml` 连接数据库，可使用环境变量覆盖：
 
 ```bash
 export INHOUSE_DB_HOST=localhost
