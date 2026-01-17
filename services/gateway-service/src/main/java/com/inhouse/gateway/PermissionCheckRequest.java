@@ -3,10 +3,17 @@ package com.inhouse.gateway;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 网关权限校验请求体。
+ */
 public class PermissionCheckRequest {
+    // 应用
     private String app;
+    // 功能
     private String feature;
+    // 资源标识
     private String resource;
+    // 额外属性
     private Map<String, Object> attributes = new HashMap<String, Object>();
 
     public String getApp() {

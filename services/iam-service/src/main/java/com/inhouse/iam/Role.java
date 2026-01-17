@@ -4,10 +4,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 角色模型。
+ */
 public class Role {
+    // 角色 ID
     private String id;
+    // 角色名称
     private String name;
+    // 权限列表
     private List<RolePermission> permissions = new ArrayList<RolePermission>();
+    // 创建时间
     private Date createdAt;
 
     public String getId() {

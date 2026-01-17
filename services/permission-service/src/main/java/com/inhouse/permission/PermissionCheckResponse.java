@@ -1,7 +1,12 @@
 package com.inhouse.permission;
 
+/**
+ * 权限校验响应体。
+ */
 public class PermissionCheckResponse {
+    // 是否允许
     private boolean allowed;
+    // 决策原因
     private String decisionReason;
 
     public PermissionCheckResponse() {

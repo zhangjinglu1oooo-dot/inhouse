@@ -4,11 +4,19 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * AI 调用响应体。
+ */
 public class AiInvokeResponse {
+    // 服务提供商名称
     private String provider;
+    // 模型名称
     private String model;
+    // 返回内容
     private String output;
+    // 使用量统计
     private Map<String, Object> usage = new HashMap<String, Object>();
+    // 创建时间
     private Date createdAt;
 
     public String getProvider() {

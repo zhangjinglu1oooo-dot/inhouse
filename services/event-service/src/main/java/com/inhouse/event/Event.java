@@ -4,10 +4,17 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 事件模型。
+ */
 public class Event {
+    // 事件 ID
     private String id;
+    // 事件主题
     private String topic;
+    // 事件负载
     private Map<String, Object> payload = new HashMap<String, Object>();
+    // 创建时间
     private Date createdAt;
 
     public String getId() {

@@ -4,15 +4,27 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 应用注册信息模型。
+ */
 public class AppDefinition {
+    // 应用 ID
     private String id;
+    // 应用名称
     private String name;
+    // 版本号
     private String version;
+    // 发布状态
     private String status = "disabled";
+    // 入口地址
     private String entryUrl;
+    // 说明
     private String description;
+    // 功能列表
     private List<String> features = new ArrayList<String>();
+    // 标签
     private List<String> tags = new ArrayList<String>();
+    // 创建时间
     private Date createdAt;
 
     public String getId() {

@@ -35,6 +35,34 @@ mvn -pl services/observability-service spring-boot:run
 mvn -pl services/gateway-service spring-boot:run
 ```
 
+## MySQL 数据库
+
+本仓库提供了 MySQL 初始化脚本，位于 `db/mysql/init.sql`。请在已有 MySQL 实例中执行：
+
+```bash
+mysql -u root -p < db/mysql/init.sql
+```
+
+默认会创建 `inhouse` 数据库并初始化表结构（详见 `db/mysql/init.sql`）。目前服务仍为内存存储，后续可在此基础上替换为持久化实现。
+
+## 前端门户
+
+前端代码位于 `frontend/`，采用 Vue 3（CDN 方式）分别提供员工门户与管理后台：
+
+```bash
+cd frontend/user-portal
+python -m http.server 5173
+```
+
+打开 `http://localhost:5173` 查看员工门户。
+
+```bash
+cd frontend/admin-portal
+python -m http.server 5174
+```
+
+打开 `http://localhost:5174` 查看管理后台。
+
 ## Example Flow
 1. Create a user and role in IAM (`/iam/*`).
 2. Login via `/auth/login` to get a token.

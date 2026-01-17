@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inhouse 管理后台</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+<body>
+  <div id="admin" class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">IH</div>
+        <div>
+          <div class="brand-title">Inhouse</div>
+          <div class="brand-sub">管理后台</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="nav-item active">总览</a>
+        <a class="nav-item">组织架构</a>
+        <a class="nav-item">人员管理</a>
+        <a class="nav-item">权限策略</a>
+        <a class="nav-item">应用注册</a>
+        <a class="nav-item">审计日志</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div>
+          <div class="user-name">系统管理员</div>
+          <div class="user-role">安全与合规中心</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <div class="breadcrumb">管理后台 / 总览</div>
+          <h1>组织与权限运营控制台</h1>
+          <p>统一管理员工信息、权限策略与应用接入状态。</p>
+        </div>
+        <div class="top-actions">
+          <input class="search" placeholder="搜索员工、部门或应用" />
+          <button class="icon-btn">⚙️</button>
+          <button class="icon-btn">📩</button>
+        </div>
+      </header>
+
+      <section class="stats">
+        <div class="stat-card" v-for="stat in stats" :key="stat.label">
+          <div class="stat-label">{{ stat.label }}</div>
+          <div class="stat-value">{{ stat.value }}</div>
+          <div class="stat-note">{{ stat.note }}</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3>员工信息维护</h3>
+          <p>完善员工画像，用于权限、流程与服务推荐。</p>
+        </div>
+        <div class="form-grid">
+          <input v-for="field in employeeFields" :key="field" :placeholder="field" />
+          <button class="primary-btn">保存员工档案</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3>策略发布与审计</h3>
+          <p>审批流、风险提示与最近操作摘要。</p>
+        </div>
+        <div class="audit-list">
+          <div class="audit-item" v-for="audit in audits" :key="audit.title">
+            <div class="audit-title">{{ audit.title }}</div>
+            <div class="audit-meta">{{ audit.meta }}</div>
+            <button class="ghost-btn">查看详情</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

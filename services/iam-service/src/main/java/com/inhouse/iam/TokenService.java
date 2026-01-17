@@ -8,11 +8,17 @@ import java.util.concurrent.TimeUnit;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+/**
+ * 简易 Token 服务，基于 HMAC 签名。
+ */
 public class TokenService {
+    // 签名密钥
     private static final byte[] SECRET = "inhouse-secret".getBytes(StandardCharsets.UTF_8);
+    // Token 有效期
     private static final long TOKEN_TTL_MILLIS = TimeUnit.HOURS.toMillis(1);
 
     public TokenResponse issueToken(String userId) {
+        // 生成带过期时间的 token
         long expiresAt = System.currentTimeMillis() + TOKEN_TTL_MILLIS;
         String payload = userId + ":" + expiresAt;
         String signature = sign(payload);
@@ -24,6 +30,7 @@ public class TokenService {
     }
 
     public String validate(String token) {
+        // 校验 token 有效性
         byte[] decoded = Base64.getUrlDecoder().decode(token);
         String tokenBody = new String(decoded, StandardCharsets.UTF_8);
         String[] parts = tokenBody.split("\\.");
@@ -47,6 +54,7 @@ public class TokenService {
     }
 
     private String sign(String payload) {
+        // 使用 HMAC SHA256 生成签名
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(SECRET, "HmacSHA256"));
