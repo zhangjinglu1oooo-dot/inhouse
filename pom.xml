@@ -21,6 +21,7 @@
     <properties>
         <java.version>1.8</java.version>
         <spring.boot.version>2.7.18</spring.boot.version>
+        <springdoc.version>1.7.0</springdoc.version>
     </properties>
 
     <dependencyManagement>
@@ -31,6 +32,11 @@
                 <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-ui</artifactId>
+                <version>${springdoc.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
