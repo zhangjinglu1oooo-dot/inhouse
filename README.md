@@ -35,6 +35,12 @@ mvn -pl services/observability-service spring-boot:run
 mvn -pl services/gateway-service spring-boot:run
 ```
 
+## Configuration
+
+Each service is configured via `application.properties` under its `src/main/resources` folder. Update `server.port` to change the port per service, or override via `SPRING_APPLICATION_JSON`/`-Dserver.port=...` at runtime.
+
+Gateway-to-permission checks are controlled by `permission.service.url` in `services/gateway-service/src/main/resources/application.properties` (defaults to `http://localhost:8082`).
+
 ## MySQL 数据库
 
 本仓库提供了 MySQL 初始化脚本，位于 `db/mysql/init.sql`。请在已有 MySQL 实例中执行：
@@ -47,18 +53,18 @@ mysql -u root -p < db/mysql/init.sql
 
 ## 前端门户
 
-前端代码位于 `frontend/`，采用 Vue 3（CDN 方式）分别提供员工门户与管理后台：
+前端代码位于 `frontend/`，采用 Vue 3（CDN 方式）分别提供员工门户与管理后台。以下命令需要已安装 Node.js，`npx` 会临时下载并运行 `http-server`：
 
 ```bash
 cd frontend/user-portal
-python -m http.server 5173
+npx http-server -p 5173
 ```
 
 打开 `http://localhost:5173` 查看员工门户。
 
 ```bash
 cd frontend/admin-portal
-python -m http.server 5174
+npx http-server -p 5174
 ```
 
 打开 `http://localhost:5174` 查看管理后台。
