@@ -2,20 +2,29 @@ package com.inhouse.iam;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
+
 /**
  * 简易 Token 服务，基于 HMAC 签名。
  */
 public class TokenService {
+    private static final String TOKEN_KEY_PREFIX = "iam:token:";
     // 签名密钥
     private static final byte[] SECRET = "inhouse-secret".getBytes(StandardCharsets.UTF_8);
     // Token 有效期
     private static final long TOKEN_TTL_MILLIS = TimeUnit.HOURS.toMillis(1);
+    private final StringRedisTemplate redisTemplate;
+
+    public TokenService(StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     public TokenResponse issueToken(String userId) {
         // 生成带过期时间的 token
@@ -23,6 +32,7 @@ public class TokenService {
         String payload = userId + ":" + expiresAt;
         String signature = sign(payload);
         String token = Base64.getUrlEncoder().encodeToString((payload + "." + signature).getBytes(StandardCharsets.UTF_8));
+        redisTemplate.opsForValue().set(tokenKey(token), userId, Duration.ofMillis(TOKEN_TTL_MILLIS));
         TokenResponse response = new TokenResponse();
         response.setAccessToken(token);
         response.setExpiresAt(new Date(expiresAt));
@@ -50,6 +60,10 @@ public class TokenService {
         if (System.currentTimeMillis() >= expiresAt) {
             throw new IllegalArgumentException("Token expired");
         }
+        String cachedUserId = redisTemplate.opsForValue().get(tokenKey(token));
+        if (cachedUserId == null || cachedUserId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Token not found");
+        }
         return payloadParts[0];
     }
 
@@ -63,5 +77,9 @@ public class TokenService {
         } catch (Exception ex) {
             throw new IllegalStateException("Token signing failed", ex);
         }
+    }
+
+    private String tokenKey(String token) {
+        return TOKEN_KEY_PREFIX + token;
     }
 }

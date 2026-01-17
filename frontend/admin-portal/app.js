@@ -1,5 +1,9 @@
 const { createApp } = Vue;
 
+const resolveAuthToken = () => {
+  return localStorage.getItem('inhouse_token') || sessionStorage.getItem('inhouse_token');
+};
+
 createApp({
   data() {
     return {
@@ -124,7 +128,10 @@ createApp({
       this.userLoading = true;
       this.userError = '';
       try {
-        const response = await fetch(`${this.apiBase}/iam/users`);
+        const token = resolveAuthToken();
+        const response = await fetch(`${this.apiBase}/iam/users`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         if (!response.ok) {
           throw new Error('加载用户列表失败');
         }
@@ -160,10 +167,12 @@ createApp({
       };
       this.userLoading = true;
       try {
+        const token = resolveAuthToken();
         const response = await fetch(`${this.apiBase}/iam/users`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify(payload),
         });

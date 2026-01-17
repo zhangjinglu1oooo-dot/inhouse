@@ -88,6 +88,24 @@ public class IamRepository {
         }
     }
 
+    public Optional<User> findUserById(String userId) {
+        try {
+            User user = jdbcTemplate.queryForObject(
+                    "SELECT u.*, p.department_id, p.title, p.manager_id, p.location, p.hire_date "
+                            + "FROM iam_users u "
+                            + "LEFT JOIN iam_user_profiles p ON u.id = p.user_id "
+                            + "WHERE u.id = ?",
+                    new UserRowMapper(),
+                    userId);
+            if (user != null) {
+                loadUserRelations(user);
+            }
+            return Optional.ofNullable(user);
+        } catch (EmptyResultDataAccessException ex) {
+            return Optional.empty();
+        }
+    }
+
     public void saveRole(Role role) {
         jdbcTemplate.update(
                 "INSERT INTO iam_roles (id, name, description, created_at) VALUES (?, ?, ?, ?)",

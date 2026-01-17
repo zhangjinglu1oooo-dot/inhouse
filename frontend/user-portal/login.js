@@ -13,6 +13,7 @@ loginForm.addEventListener('submit', async (event) => {
   const formData = new FormData(loginForm);
   const account = formData.get('account').trim();
   const password = formData.get('password').trim();
+  const remember = formData.get('remember') === 'on';
 
   showMessage('正在验证账号…', 'info');
 
@@ -28,7 +29,10 @@ loginForm.addEventListener('submit', async (event) => {
     }
 
     const data = await response.json();
-    localStorage.setItem('inhouse_token', data.accessToken);
+    localStorage.removeItem('inhouse_token');
+    sessionStorage.removeItem('inhouse_token');
+    const storage = remember ? localStorage : sessionStorage;
+    storage.setItem('inhouse_token', data.accessToken);
     showMessage('登录成功，正在进入系统…', 'success');
     setTimeout(() => {
       window.location.href = 'system.html';
