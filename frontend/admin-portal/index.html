@@ -18,15 +18,37 @@
         </div>
       </div>
       <nav class="nav">
-        <a
-          v-for="item in navItems"
-          :key="item.id"
-          class="nav-item"
-          :class="{ active: currentView === item.id }"
-          @click="setView(item.id)"
-        >
-          {{ item.label }}
-        </a>
+        <template v-for="item in navItems" :key="item.id">
+          <div v-if="item.children" class="nav-group">
+            <div
+              class="nav-item nav-parent"
+              :class="{ active: isGroupActive(item) }"
+              @click="toggleNav(item.id)"
+            >
+              <span>{{ item.label }}</span>
+              <span class="nav-arrow" :class="{ open: isNavOpen(item.id) }">▾</span>
+            </div>
+            <div class="nav-children" v-show="isNavOpen(item.id)">
+              <a
+                v-for="child in item.children"
+                :key="child.id"
+                class="nav-item nav-child"
+                :class="{ active: currentView === child.id }"
+                @click="setView(child.id)"
+              >
+                {{ child.label }}
+              </a>
+            </div>
+          </div>
+          <a
+            v-else
+            class="nav-item"
+            :class="{ active: currentView === item.id }"
+            @click="setView(item.id)"
+          >
+            {{ item.label }}
+          </a>
+        </template>
       </nav>
       <div class="sidebar-footer">
         <div>
@@ -37,185 +59,479 @@
     </aside>
 
     <main class="content">
-      <header class="topbar">
-        <div>
-          <div class="breadcrumb">管理后台 / {{ viewMeta.breadcrumb }}</div>
-          <h1>{{ viewMeta.title }}</h1>
-          <p>{{ viewMeta.subtitle }}</p>
-        </div>
-        <div class="top-actions">
-          <input class="search" v-model="searchText" placeholder="搜索员工、部门或应用" />
-          <button class="icon-btn">⚙️</button>
-          <button class="icon-btn">📩</button>
-        </div>
-      </header>
-
-      <template v-if="currentView === 'overview'">
-        <section class="stats">
-          <div class="stat-card" v-for="stat in stats" :key="stat.label">
-            <div class="stat-label">{{ stat.label }}</div>
-            <div class="stat-value">{{ stat.value }}</div>
-            <div class="stat-note">{{ stat.note }}</div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-header">
-            <h3>员工信息维护</h3>
-            <p>完善员工画像，用于权限、流程与服务推荐。</p>
-          </div>
-          <div class="form-grid">
-            <input v-for="field in employeeFields" :key="field" :placeholder="field" />
-            <button class="primary-btn">保存员工档案</button>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-header">
-            <h3>策略发布与审计</h3>
-            <p>审批流、风险提示与最近操作摘要。</p>
-          </div>
-          <div class="audit-list">
-            <div class="audit-item" v-for="audit in audits" :key="audit.title">
-              <div>
-                <div class="audit-title">{{ audit.title }}</div>
-                <div class="audit-meta">{{ audit.meta }}</div>
-              </div>
-              <button class="ghost-btn">查看详情</button>
-            </div>
-          </div>
-        </section>
-      </template>
-
-      <template v-else-if="currentView === 'users'">
-        <section class="panel">
+      <template v-if="!isAuthenticated">
+        <section class="panel login-panel">
           <div class="panel-header">
             <div>
-              <h3>新增员工账号</h3>
-              <p>创建账号后将同步写入 IAM 数据库。</p>
-            </div>
-            <div class="panel-actions">
-              <button class="ghost-btn" @click="resetUserForm">重置</button>
-              <button class="primary-btn" @click="createUser" :disabled="userLoading">保存账号</button>
+              <h3>管理员登录</h3>
+              <p>登录后才能访问用户、角色与权限管理模块。</p>
             </div>
           </div>
           <div class="form-grid">
-            <div class="field">
-              <label>员工编号</label>
-              <input v-model="userForm.employeeId" placeholder="EMP-10001" />
-            </div>
             <div class="field">
               <label>账号</label>
-              <input v-model="userForm.username" placeholder="登录账号" />
+              <input v-model="loginForm.account" placeholder="请输入账号" />
             </div>
             <div class="field">
-              <label>姓名</label>
-              <input v-model="userForm.displayName" placeholder="姓名" />
-            </div>
-            <div class="field">
-              <label>初始密码</label>
-              <input v-model="userForm.password" type="password" placeholder="初始密码" />
-            </div>
-            <div class="field">
-              <label>邮箱</label>
-              <input v-model="userForm.email" placeholder="name@company.com" />
-            </div>
-            <div class="field">
-              <label>手机号</label>
-              <input v-model="userForm.phone" placeholder="手机号" />
-            </div>
-            <div class="field">
-              <label>部门 ID</label>
-              <input v-model="userForm.departmentId" placeholder="部门 ID" />
-            </div>
-            <div class="field">
-              <label>职位</label>
-              <input v-model="userForm.title" placeholder="职位" />
-            </div>
-            <div class="field">
-              <label>直属上级</label>
-              <input v-model="userForm.managerId" placeholder="上级 ID" />
-            </div>
-            <div class="field">
-              <label>工位地点</label>
-              <input v-model="userForm.location" placeholder="工位地点" />
-            </div>
-            <div class="field">
-              <label>入职日期</label>
-              <input v-model="userForm.hireDate" type="date" />
-            </div>
-            <div class="field">
-              <label>状态</label>
-              <select v-model="userForm.status">
-                <option value="active">启用</option>
-                <option value="inactive">停用</option>
-                <option value="locked">锁定</option>
-              </select>
+              <label>密码</label>
+              <input v-model="loginForm.password" type="password" placeholder="请输入密码" />
             </div>
           </div>
-          <div v-if="userError" class="status-banner error">{{ userError }}</div>
-          <div v-if="userSuccess" class="status-banner success">{{ userSuccess }}</div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <h3>用户列表</h3>
-              <p>共 {{ filteredUsers.length }} 位员工账号</p>
-            </div>
-            <div class="panel-actions">
-              <button class="ghost-btn" @click="loadUsers" :disabled="userLoading">刷新列表</button>
-            </div>
+          <div class="panel-actions">
+            <button class="primary-btn" @click="login" :disabled="authLoading">登录</button>
           </div>
-          <div v-if="userLoading" class="empty-state">正在加载用户数据...</div>
-          <div v-else-if="filteredUsers.length === 0" class="empty-state">
-            暂无用户数据，请先新增员工账号。
-          </div>
-          <div v-else class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>员工编号</th>
-                  <th>姓名</th>
-                  <th>账号</th>
-                  <th>部门</th>
-                  <th>职位</th>
-                  <th>状态</th>
-                  <th>联系方式</th>
-                  <th>入职日期</th>
-                  <th>创建时间</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="user in filteredUsers" :key="user.id">
-                  <td>{{ user.employeeId }}</td>
-                  <td>
-                    <div class="user-name">{{ user.displayName || '-' }}</div>
-                    <div class="user-sub">{{ user.email || '未填写邮箱' }}</div>
-                  </td>
-                  <td>{{ user.username }}</td>
-                  <td>{{ user.departmentId || '-' }}</td>
-                  <td>{{ user.title || '-' }}</td>
-                  <td>
-                    <span class="status-pill" :class="user.status">{{ statusLabel(user.status) }}</span>
-                  </td>
-                  <td>
-                    <div>{{ user.phone || '-' }}</div>
-                    <div class="user-sub">{{ user.location || '-' }}</div>
-                  </td>
-                  <td>{{ formatDate(user.hireDate) }}</td>
-                  <td>{{ formatDate(user.createdAt) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <div v-if="authError" class="status-banner error">{{ authError }}</div>
         </section>
       </template>
 
       <template v-else>
-        <section class="panel empty-state">
-          该模块正在建设中，敬请期待。
-        </section>
+        <header class="topbar">
+          <div>
+            <div class="breadcrumb">管理后台 / {{ viewMeta.breadcrumb }}</div>
+            <h1>{{ viewMeta.title }}</h1>
+            <p>{{ viewMeta.subtitle }}</p>
+          </div>
+          <div class="top-actions">
+            <input class="search" v-model="searchText" placeholder="搜索员工、部门或应用" />
+            <button class="ghost-btn" @click="logout">退出登录</button>
+            <button class="icon-btn">⚙️</button>
+            <button class="icon-btn">📩</button>
+          </div>
+        </header>
+
+        <template v-if="currentView === 'overview'">
+          <section class="stats">
+            <div class="stat-card" v-for="stat in stats" :key="stat.label">
+              <div class="stat-label">{{ stat.label }}</div>
+              <div class="stat-value">{{ stat.value }}</div>
+              <div class="stat-note">{{ stat.note }}</div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h3>员工信息维护</h3>
+              <p>完善员工画像，用于权限、流程与服务推荐。</p>
+            </div>
+            <div class="form-grid">
+              <input v-for="field in employeeFields" :key="field" :placeholder="field" />
+              <button class="primary-btn">保存员工档案</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h3>策略发布与审计</h3>
+              <p>审批流、风险提示与最近操作摘要。</p>
+            </div>
+            <div class="audit-list">
+              <div class="audit-item" v-for="audit in audits" :key="audit.title">
+                <div>
+                  <div class="audit-title">{{ audit.title }}</div>
+                  <div class="audit-meta">{{ audit.meta }}</div>
+                </div>
+                <button class="ghost-btn">查看详情</button>
+              </div>
+            </div>
+          </section>
+        </template>
+
+        <template v-else-if="currentView === 'users'">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>用户列表</h3>
+                <p>共 {{ userPagination.total }} 位员工账号</p>
+              </div>
+              <div class="panel-actions">
+                <button class="ghost-btn" @click="loadUsers" :disabled="userLoading">刷新列表</button>
+                <button class="primary-btn" @click="toggleUserForm">
+                  {{ showUserForm ? '收起新增' : '新增用户' }}
+                </button>
+              </div>
+            </div>
+            <div v-if="userLoading" class="empty-state">正在加载用户数据...</div>
+            <div v-else-if="filteredUsers.length === 0" class="empty-state">
+              暂无用户数据，请先新增员工账号。
+            </div>
+            <div v-else class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>员工编号</th>
+                    <th>姓名</th>
+                    <th>账号</th>
+                    <th>部门</th>
+                    <th>职位</th>
+                    <th>状态</th>
+                    <th>联系方式</th>
+                    <th>入职日期</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="user in filteredUsers" :key="user.id">
+                    <td>{{ user.employeeId }}</td>
+                    <td>
+                      <div class="user-name">{{ user.displayName || '-' }}</div>
+                      <div class="user-sub">{{ user.email || '未填写邮箱' }}</div>
+                    </td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.departmentId || '-' }}</td>
+                    <td>{{ user.title || '-' }}</td>
+                    <td>
+                      <span class="status-pill" :class="user.status">{{ statusLabel(user.status) }}</span>
+                    </td>
+                    <td>
+                      <div>{{ user.phone || '-' }}</div>
+                      <div class="user-sub">{{ user.location || '-' }}</div>
+                    </td>
+                    <td>{{ formatDate(user.hireDate) }}</td>
+                    <td>{{ formatDate(user.createdAt) }}</td>
+                    <td>
+                      <div class="table-actions">
+                        <button class="link-btn" @click="startEditUser(user)">编辑</button>
+                        <button class="link-btn danger" @click="deleteUser(user)">删除</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="filteredUsers.length" class="pagination">
+              <div class="pagination-info">
+                第 {{ userPagination.page }} 页 / 共 {{ userTotalPages }} 页
+              </div>
+              <div class="pagination-controls">
+                <button
+                  class="ghost-btn"
+                  @click="changeUserPage(userPagination.page - 1)"
+                  :disabled="userPagination.page === 1"
+                >
+                  上一页
+                </button>
+                <button
+                  class="ghost-btn"
+                  @click="changeUserPage(userPagination.page + 1)"
+                  :disabled="userPagination.page === userTotalPages"
+                >
+                  下一页
+                </button>
+                <select
+                  v-model.number="userPagination.size"
+                  @change="changeUserPage(1)"
+                  class="page-size"
+                >
+                  <option :value="5">5 条/页</option>
+                  <option :value="8">8 条/页</option>
+                  <option :value="12">12 条/页</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" v-if="showUserForm">
+            <div class="panel-header">
+              <div>
+                <h3>{{ editingUserId ? '编辑员工账号' : '新增员工账号' }}</h3>
+                <p>创建或维护账号后将同步写入 IAM 数据库。</p>
+              </div>
+              <div class="panel-actions">
+                <button class="ghost-btn" @click="toggleUserForm">
+                  {{ editingUserId ? '取消编辑' : '收起表单' }}
+                </button>
+                <button class="primary-btn" @click="submitUser" :disabled="userLoading">
+                  {{ editingUserId ? '更新账号' : '保存账号' }}
+                </button>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label>员工编号</label>
+                <input v-model="userForm.employeeId" placeholder="EMP-10001" />
+              </div>
+              <div class="field">
+                <label>账号</label>
+                <input v-model="userForm.username" placeholder="登录账号" />
+              </div>
+              <div class="field">
+                <label>姓名</label>
+                <input v-model="userForm.displayName" placeholder="姓名" />
+              </div>
+              <div class="field">
+                <label>初始密码</label>
+                <input v-model="userForm.password" type="password" placeholder="初始密码" />
+              </div>
+              <div class="field">
+                <label>邮箱</label>
+                <input v-model="userForm.email" placeholder="name@company.com" />
+              </div>
+              <div class="field">
+                <label>手机号</label>
+                <input v-model="userForm.phone" placeholder="手机号" />
+              </div>
+              <div class="field">
+                <label>部门 ID</label>
+                <input v-model="userForm.departmentId" placeholder="部门 ID" />
+              </div>
+              <div class="field">
+                <label>职位</label>
+                <input v-model="userForm.title" placeholder="职位" />
+              </div>
+              <div class="field">
+                <label>直属上级</label>
+                <input v-model="userForm.managerId" placeholder="上级 ID" />
+              </div>
+              <div class="field">
+                <label>工位地点</label>
+                <input v-model="userForm.location" placeholder="工位地点" />
+              </div>
+              <div class="field">
+                <label>入职日期</label>
+                <input v-model="userForm.hireDate" type="date" />
+              </div>
+              <div class="field">
+                <label>状态</label>
+                <select v-model="userForm.status">
+                  <option value="active">启用</option>
+                  <option value="inactive">停用</option>
+                  <option value="locked">锁定</option>
+                </select>
+              </div>
+            </div>
+            <div v-if="userError" class="status-banner error">{{ userError }}</div>
+            <div v-if="userSuccess" class="status-banner success">{{ userSuccess }}</div>
+          </section>
+        </template>
+
+        <template v-else-if="currentView === 'roles'">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>角色列表</h3>
+                <p>共 {{ rolePagination.total }} 个角色</p>
+              </div>
+              <div class="panel-actions">
+                <button class="ghost-btn" @click="loadRoles" :disabled="roleLoading">刷新列表</button>
+                <button class="primary-btn" @click="toggleRoleForm">
+                  {{ showRoleForm ? '收起新增' : '新增角色' }}
+                </button>
+              </div>
+            </div>
+            <div v-if="roleLoading" class="empty-state">正在加载角色数据...</div>
+            <div v-else-if="roles.length === 0" class="empty-state">
+              暂无角色数据，请先新增角色。
+            </div>
+            <div v-else class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>角色名称</th>
+                    <th>描述</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="role in roles" :key="role.id">
+                    <td>{{ role.name }}</td>
+                    <td>{{ role.description || '-' }}</td>
+                    <td>{{ formatDate(role.createdAt) }}</td>
+                    <td>
+                      <div class="table-actions">
+                        <button class="link-btn" @click="startEditRole(role)">编辑</button>
+                        <button class="link-btn danger" @click="deleteRole(role)">删除</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="roles.length" class="pagination">
+              <div class="pagination-info">
+                第 {{ rolePagination.page }} 页 / 共 {{ roleTotalPages }} 页
+              </div>
+              <div class="pagination-controls">
+                <button
+                  class="ghost-btn"
+                  @click="changeRolePage(rolePagination.page - 1)"
+                  :disabled="rolePagination.page === 1"
+                >
+                  上一页
+                </button>
+                <button
+                  class="ghost-btn"
+                  @click="changeRolePage(rolePagination.page + 1)"
+                  :disabled="rolePagination.page === roleTotalPages"
+                >
+                  下一页
+                </button>
+                <select
+                  v-model.number="rolePagination.size"
+                  @change="changeRolePage(1)"
+                  class="page-size"
+                >
+                  <option :value="5">5 条/页</option>
+                  <option :value="8">8 条/页</option>
+                  <option :value="12">12 条/页</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" v-if="showRoleForm">
+            <div class="panel-header">
+              <div>
+                <h3>{{ editingRoleId ? '编辑角色' : '新增角色' }}</h3>
+                <p>维护岗位与授权角色，为权限策略提供基础。</p>
+              </div>
+              <div class="panel-actions">
+                <button class="ghost-btn" @click="toggleRoleForm">
+                  {{ editingRoleId ? '取消编辑' : '收起表单' }}
+                </button>
+                <button class="primary-btn" @click="submitRole" :disabled="roleLoading">
+                  {{ editingRoleId ? '更新角色' : '保存角色' }}
+                </button>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label>角色名称</label>
+                <input v-model="roleForm.name" placeholder="如：安全管理员" />
+              </div>
+              <div class="field">
+                <label>角色描述</label>
+                <input v-model="roleForm.description" placeholder="描述角色职责与范围" />
+              </div>
+            </div>
+            <div v-if="roleError" class="status-banner error">{{ roleError }}</div>
+            <div v-if="roleSuccess" class="status-banner success">{{ roleSuccess }}</div>
+          </section>
+        </template>
+
+        <template v-else-if="currentView === 'permissions'">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>权限列表</h3>
+                <p>共 {{ permissionPagination.total }} 条权限</p>
+              </div>
+              <div class="panel-actions">
+                <button class="ghost-btn" @click="loadPermissions" :disabled="permissionLoading">刷新列表</button>
+                <button class="primary-btn" @click="togglePermissionForm">
+                  {{ showPermissionForm ? '收起新增' : '新增权限' }}
+                </button>
+              </div>
+            </div>
+            <div v-if="permissionLoading" class="empty-state">正在加载权限数据...</div>
+            <div v-else-if="permissions.length === 0" class="empty-state">
+              暂无权限数据，请先新增权限。
+            </div>
+            <div v-else class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>应用</th>
+                    <th>功能点</th>
+                    <th>资源</th>
+                    <th>描述</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="permission in permissions" :key="permission.id">
+                    <td>{{ permission.app }}</td>
+                    <td>{{ permission.feature }}</td>
+                    <td>{{ permission.resource || '-' }}</td>
+                    <td>{{ permission.description || '-' }}</td>
+                    <td>{{ formatDate(permission.createdAt) }}</td>
+                    <td>
+                      <div class="table-actions">
+                        <button class="link-btn" @click="startEditPermission(permission)">编辑</button>
+                        <button class="link-btn danger" @click="deletePermission(permission)">删除</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="permissions.length" class="pagination">
+              <div class="pagination-info">
+                第 {{ permissionPagination.page }} 页 / 共 {{ permissionTotalPages }} 页
+              </div>
+              <div class="pagination-controls">
+                <button
+                  class="ghost-btn"
+                  @click="changePermissionPage(permissionPagination.page - 1)"
+                  :disabled="permissionPagination.page === 1"
+                >
+                  上一页
+                </button>
+                <button
+                  class="ghost-btn"
+                  @click="changePermissionPage(permissionPagination.page + 1)"
+                  :disabled="permissionPagination.page === permissionTotalPages"
+                >
+                  下一页
+                </button>
+                <select
+                  v-model.number="permissionPagination.size"
+                  @change="changePermissionPage(1)"
+                  class="page-size"
+                >
+                  <option :value="5">5 条/页</option>
+                  <option :value="8">8 条/页</option>
+                  <option :value="12">12 条/页</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" v-if="showPermissionForm">
+            <div class="panel-header">
+              <div>
+                <h3>{{ editingPermissionId ? '编辑权限' : '新增权限' }}</h3>
+                <p>维护可授权应用与功能点清单。</p>
+              </div>
+              <div class="panel-actions">
+                <button class="ghost-btn" @click="togglePermissionForm">
+                  {{ editingPermissionId ? '取消编辑' : '收起表单' }}
+                </button>
+                <button class="primary-btn" @click="submitPermission" :disabled="permissionLoading">
+                  {{ editingPermissionId ? '更新权限' : '保存权限' }}
+                </button>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label>应用名称</label>
+                <input v-model="permissionForm.app" placeholder="如：CRM" />
+              </div>
+              <div class="field">
+                <label>功能点</label>
+                <input v-model="permissionForm.feature" placeholder="如：客户数据查看" />
+              </div>
+              <div class="field">
+                <label>资源标识</label>
+                <input v-model="permissionForm.resource" placeholder="可选，如：tenant-01" />
+              </div>
+              <div class="field">
+                <label>权限描述</label>
+                <input v-model="permissionForm.description" placeholder="描述权限用途" />
+              </div>
+            </div>
+            <div v-if="permissionError" class="status-banner error">{{ permissionError }}</div>
+            <div v-if="permissionSuccess" class="status-banner success">{{ permissionSuccess }}</div>
+          </section>
+        </template>
+
+        <template v-else>
+          <section class="panel empty-state">
+            该模块正在建设中，敬请期待。
+          </section>
+        </template>
       </template>
     </main>
   </div>
