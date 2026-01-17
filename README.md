@@ -49,7 +49,17 @@ Gateway-to-permission checks are controlled by `permission.service.url` in `serv
 mysql -u root -p < db/mysql/init.sql
 ```
 
-默认会创建 `inhouse` 数据库并初始化表结构（详见 `db/mysql/init.sql`）。目前服务仍为内存存储，后续可在此基础上替换为持久化实现。
+默认会创建 `inhouse` 数据库并初始化表结构（详见 `db/mysql/init.sql`）。服务会通过 `application.properties` 连接数据库，可使用环境变量覆盖：
+
+```bash
+export INHOUSE_DB_HOST=localhost
+export INHOUSE_DB_PORT=3306
+export INHOUSE_DB_NAME=inhouse
+export INHOUSE_DB_USERNAME=root
+export INHOUSE_DB_PASSWORD=root
+```
+
+如需调整连接信息，也可以直接修改各服务的 `spring.datasource.*` 配置项。
 
 ## 前端门户
 

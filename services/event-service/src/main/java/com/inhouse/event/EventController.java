@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/events")
 @CrossOrigin(origins = "*")
 public class EventController {
-    // 内存事件存储
-    private final EventStore store;
+    // 事件仓库
+    private final EventRepository repository;
 
-    public EventController(EventStore store) {
-        this.store = store;
+    public EventController(EventRepository repository) {
+        this.repository = repository;
     }
 
     @PostMapping
@@ -34,12 +34,12 @@ public class EventController {
         // 写入事件
         event.setId(UUID.randomUUID().toString());
         event.setCreatedAt(new Date());
-        store.getEvents().add(event);
+        repository.saveEvent(event);
         return event;
     }
 
     @GetMapping
     public List<Event> list() {
-        return new ArrayList<Event>(store.getEvents());
+        return new ArrayList<Event>(repository.listEvents());
     }
 }
