@@ -2,6 +2,7 @@ package com.inhouse.iam;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * IAM 服务配置。
@@ -9,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class IamConfig {
     @Bean
-    public TokenService tokenService() {
-        return new TokenService();
+    public TokenService tokenService(StringRedisTemplate stringRedisTemplate) {
+        return new TokenService(stringRedisTemplate);
     }
 }
