@@ -35,6 +35,28 @@ mvn -pl services/observability-service spring-boot:run
 mvn -pl services/gateway-service spring-boot:run
 ```
 
+## MySQL 数据库
+
+本仓库提供了 MySQL 初始化脚本与 Docker Compose 配置，位于 `db/mysql/`：
+
+```bash
+cd db/mysql
+docker compose up -d
+```
+
+默认会创建 `inhouse` 数据库并初始化表结构（详见 `db/mysql/init.sql`）。目前服务仍为内存存储，后续可在此基础上替换为持久化实现。
+
+## 前端门户
+
+前端代码位于 `frontend/`，使用纯静态页面展示前后端分离调用方式：
+
+```bash
+cd frontend
+python -m http.server 5173
+```
+
+打开 `http://localhost:5173`，即可通过页面调用各后端服务接口。
+
 ## Example Flow
 1. Create a user and role in IAM (`/iam/*`).
 2. Login via `/auth/login` to get a token.

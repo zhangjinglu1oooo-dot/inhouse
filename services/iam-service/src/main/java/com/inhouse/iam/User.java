@@ -6,13 +6,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 用户信息模型。
+ */
 public class User {
+    // 用户 ID
     private String id;
+    // 登录名
     private String username;
+    // 密码（演示用明文存储）
     private String password;
+    // 展示名称
     private String displayName;
+    // 角色列表
     private List<String> roles = new ArrayList<String>();
+    // 自定义属性
     private Map<String, Object> attributes = new HashMap<String, Object>();
+    // 创建时间
     private Date createdAt;
 
     public String getId() {

@@ -1,9 +1,16 @@
 package com.inhouse.iam;
 
+/**
+ * 角色权限定义。
+ */
 public class RolePermission {
+    // 应用名称
     private String app;
+    // 功能点
     private String feature;
+    // 资源标识
     private String resource;
+    // 允许或拒绝
     private String effect = "allow";
 
     public String getApp() {

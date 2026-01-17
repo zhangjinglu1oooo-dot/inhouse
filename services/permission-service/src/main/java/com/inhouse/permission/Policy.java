@@ -4,13 +4,23 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 权限策略模型。
+ */
 public class Policy {
+    // 策略 ID
     private String id;
+    // 目标应用
     private String app;
+    // 功能点
     private String feature;
+    // 资源标识
     private String resource;
+    // 允许或拒绝
     private String effect = "allow";
+    // 附加条件
     private Map<String, Object> conditions = new HashMap<String, Object>();
+    // 创建时间
     private Date createdAt;
 
     public String getId() {

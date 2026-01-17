@@ -2,9 +2,15 @@ package com.inhouse.iam;
 
 import java.util.Date;
 
+/**
+ * Token 返回对象。
+ */
 public class TokenResponse {
+    // access token
     private String accessToken;
+    // token 类型
     private String tokenType = "bearer";
+    // 过期时间
     private Date expiresAt;
 
     public String getAccessToken() {

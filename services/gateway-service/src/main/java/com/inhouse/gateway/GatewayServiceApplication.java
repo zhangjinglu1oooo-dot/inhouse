@@ -5,6 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * 网关服务启动类。
+ */
 @SpringBootApplication
 public class GatewayServiceApplication {
     public static void main(String[] args) {

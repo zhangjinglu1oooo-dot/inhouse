@@ -1,7 +1,12 @@
 package com.inhouse.iam;
 
+/**
+ * 登录请求体。
+ */
 public class LoginRequest {
+    // 用户名
     private String username;
+    // 密码
     private String password;
 
     public String getUsername() {
